@@ -575,11 +575,28 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
         panelResult.SetActive(true);
 
         enabled = false;
+        CleaerAllTils();
     }
 
     //リトライボタン
     public void OnClickRetry()
     {
         SceneManager.LoadScene("MatchPuzzle");
+    }
+
+    void CleaerAllTils()
+    {
+        for (int x = 0; x < filedWidth; x++)
+        {
+            for(int y = 0; y < filedHeight; y++)
+            {
+                TileController tile = fieldTiles[x, y];
+                if (tile)
+                {
+                    Destroy(tile.gameObject);
+                    fieldTiles[x, y] = null;
+                }
+            }
+        }
     }
 }

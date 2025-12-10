@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Empire-Match.slnx"
+    "dotnet.defaultSolution": "Empire_Match.slnx"
 }
