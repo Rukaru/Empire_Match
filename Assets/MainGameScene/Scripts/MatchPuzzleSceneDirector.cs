@@ -15,7 +15,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] int filedHeight;
     [SerializeField] int matchColorCount;
     [SerializeField] int deleteScore;
-    [SerializeField] float gameTimer;
+
 
     [SerializeField] SpriteRenderer field;
     [SerializeField] TileController prefabTile;
