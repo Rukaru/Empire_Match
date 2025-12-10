@@ -16,10 +16,8 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] int matchColorCount;
     [SerializeField] int deleteScore;
 
-
     [SerializeField] SpriteRenderer field;
     [SerializeField] TileController prefabTile;
-    //[SerializeField] TextMeshProUGUI textGameTimer;
     [SerializeField] TextMeshProUGUI textGameScore;
     [SerializeField] TextMeshProUGUI textCombo;
     [SerializeField] GameObject panelResult;
@@ -93,15 +91,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
     void Update()
     {
-        // gameTimer -= Time.deltaTime;
-        // if (gameTimer < 0)
-        // {
-        //     GameResult();
-        //     gameTimer = -1;
-        // }
-
-        // textGameTimer.text = "" + (int)(gameTimer + 1);
-
+        
         if (gameMode == GameMode.WaitFall)  
         WaitFallMode();
         else if (gameMode == GameMode.Delete)
