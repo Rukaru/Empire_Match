@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 
+
 public class MatchPuzzleSceneDirector : MonoBehaviour
 {
     //変更可能なゲームルール
@@ -14,18 +15,19 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] int filedHeight;
     [SerializeField] int matchColorCount;
     [SerializeField] int deleteScore;
-    [SerializeField] float gameTimer;
 
     [SerializeField] SpriteRenderer field;
     [SerializeField] TileController prefabTile;
-    [SerializeField] TextMeshProUGUI textGameTimer;
     [SerializeField] TextMeshProUGUI textGameScore;
     [SerializeField] TextMeshProUGUI textCombo;
     [SerializeField] GameObject panelResult;
     [SerializeField] TextMeshProUGUI textResultScore;
     [SerializeField] AudioClip seDelete;
+    [SerializeField] Vector2 fieldOffset;   //UI調整用オフセット
+
 
     TileController[,] fieldTiles;
+    
 
     enum GameMode
     {
@@ -48,6 +50,10 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     int gameScore;
     int comboScore;
     bool isInitialBoard = true;
+
+    private int chainCount;
+    private List<TileController> removedTilesAll = new List<TileController>();
+    // 全連鎖の消去ピース
 
     //サウンド
     AudioSource audioSource;
@@ -85,15 +91,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
     void Update()
     {
-        gameTimer -= Time.deltaTime;
-        if (gameTimer < 0)
-        {
-            GameResult();
-            gameTimer = -1;
-        }
-
-        textGameTimer.text = "" + (int)(gameTimer + 1);
-
+        
         if (gameMode == GameMode.WaitFall)  
         WaitFallMode();
         else if (gameMode == GameMode.Delete)
@@ -123,12 +121,14 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     --------------------------------------------------------*/
     public Vector2 IndexToWorldPosition(int x, int y)//画面中央に限定
     {
-        Vector2 position = new Vector2();
+        // フィールドの中心 = Field.position + Offset
+        Vector2 basePos = (Vector2)field.transform.position + fieldOffset;
 
-        position.x = x + 0.5f - filedWidth / 2.0f;
-        position.y = y + 0.5f - filedHeight / 2.0f;
+        // 中央を基準に 0.5f の補正
+        float worldX = basePos.x + (x - filedWidth / 2f + 0.5f);
+        float worldY = basePos.y + (y - filedHeight / 2f + 0.5f);
 
-        return position;
+        return new Vector2(worldX, worldY);
     }
 
     //タイル生成
@@ -204,7 +204,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
             DeleteTiles(deleteTiles);
             gameMode = GameMode.Fall;
         }
-        else
+        else 
         {
             List<Vector2Int> movableTiles = GetMovableTiles();
             if(movableTiles.Count < 1)
@@ -221,7 +221,44 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
                 gameMode = GameMode.Fall;
             }
+
+            //連鎖が完全に終了したタイミングで結果をまとめる
+            if (!isInitialBoard && removedTilesAll.Count > 0)
+            {
+                ProcessChainResult();
+            }
+
         }
+    }
+
+    void ProcessChainResult()
+    {
+        int red = 0;
+        int green = 0;
+        int blue = 0;
+        int yellow = 0;
+
+        foreach(var tile in removedTilesAll)
+        {
+            switch (tile.ColorType)
+            {
+                case 0: red++; break;
+                case 1: green++; break;
+                case 2: blue++; break;
+                case 3: yellow++; break;
+            }
+        }
+
+        //BattleManager に渡す（後で実装）
+        PuzzleResult result = new PuzzleResult(chainCount, red, green, blue, yellow);
+
+        Debug.Log("連鎖結果 => " + result.ToString());
+        // 戦闘管理に送る予定（あとで作る）
+        // BattleManager.Instance.OnPuzzleChainResult(chainCount, red, green, blue, yellow);
+
+        //次の連鎖反応まで備える
+        chainCount = 0;
+        removedTilesAll.Clear();
     }
 
     void FallMode()
@@ -325,17 +362,18 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     /*-------------------------------------------------------
     /         フィールドデータ(WorldToIndexPosition)
     --------------------------------------------------------*/
-    Vector2Int WorldToIndexPosition(Vector2 position)
+    Vector2Int WorldToIndexPosition(Vector2 worldPos)
     {
-        Vector2Int index = new Vector2Int();
+         
+        Vector2 basePos = (Vector2)field.transform.position + fieldOffset;
 
-        float x = position.x - 0.5f + filedWidth / 2.0f;
-        float y = position.y- 0.5f + filedHeight / 2.0f;
+        float localX = worldPos.x - basePos.x;
+        float localY = worldPos.y - basePos.y;
 
-        index.x = (int)x;
-        index.y = (int)y;
+        int x = Mathf.FloorToInt(localX + filedWidth / 2f);
+        int y = Mathf.FloorToInt(localY + filedHeight / 2f);
 
-        return index;
+        return new Vector2Int(x, y);
     }
 
     //タイルデータ入れ替わる
@@ -381,6 +419,8 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
         matchTiles.Add(index);//開始位置
         
         int mainColor = GetFieldTile(index.x, index.y).ColorType;//色保存
+
+        
 
         //全方向調べる
         foreach(var dir in directions)
@@ -455,6 +495,22 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
     //タイル削除
     void DeleteTiles(List<Vector2Int> deleteTiles)
     {
+        if (!isInitialBoard)//最初の盤面生成じゃなければ連鎖カウント
+        {
+            chainCount++;    
+        }
+
+        //先に removedTilesAll に入れる（Delete() より前）
+        foreach (var item in deleteTiles)
+        {
+            TileController tile = GetFieldTile(item.x, item.y);
+            if(tile != null)
+            {
+                removedTilesAll.Add(tile);
+                //DeleteTiles の「内部データクリアより前（tile.Delete() より前）」で入れるのが安全
+            }
+        }
+
         foreach (var item in deleteTiles)
         {
             TileController tile = GetFieldTile(item.x, item.y);
