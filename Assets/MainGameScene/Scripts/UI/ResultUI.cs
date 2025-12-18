@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 public class ResultUI : MonoBehaviour
 {
     [SerializeField] TextMeshProUGUI resultText;
-    [SerializeField] TextMeshProUGUI scoreText;
+    //[SerializeField] TextMeshProUGUI scoreText;
     [SerializeField] TextMeshProUGUI enemyText;
     [SerializeField] TextMeshProUGUI bossText;
     [SerializeField] AudioClip tapSE;
@@ -16,7 +16,7 @@ public class ResultUI : MonoBehaviour
     void Start()
     {
         resultText.text = GameResultData.isWin ? "YOU WIN" : "GAME OVER";
-        scoreText.text = $"Score : {GameResultData.score}";
+        //scoreText.text = $"Score : {GameResultData.score}";
         enemyText.text = $"Enemies : {GameResultData.killedEnemyCount}";
         bossText.text = $"Bosses : {GameResultData.killedBossCount}";
     }
