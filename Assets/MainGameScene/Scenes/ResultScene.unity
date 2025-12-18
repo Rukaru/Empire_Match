@@ -241,8 +241,8 @@ Camera:
   m_GameObject: {fileID: 404234201}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.046991773, g: 0.048283916, b: 0.050314426, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -430,7 +430,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resultText: {fileID: 597054057}
-  scoreText: {fileID: 1401792461}
   enemyText: {fileID: 1690344354}
   bossText: {fileID: 2145599634}
   tapSE: {fileID: 8300000, guid: 2d2d09a6fc325094b88f973598cb4552, type: 3}
@@ -678,7 +677,7 @@ RectTransform:
   m_GameObject: {fileID: 1184135501}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 15, y: 10, z: 1}
+  m_LocalScale: {x: 9.6, y: 6.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 597054055}
