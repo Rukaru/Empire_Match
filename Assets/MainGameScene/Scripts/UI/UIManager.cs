@@ -54,7 +54,7 @@ public class UIManager : MonoBehaviour
 
     public void SetEnemyTurn(int turn)
     {
-        enemyTurnText.text = $"TURN {turn}";
+        enemyTurnText.text = $"ENEMY ATTACK TURN {turn}";
     }
 
     public IEnumerator ScreenDamageFlash()
