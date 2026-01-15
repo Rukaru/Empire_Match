@@ -19,6 +19,7 @@ public class StarttUI : MonoBehaviour, IPointerClickHandler
         if (AudioManager.Instance != null)
         AudioManager.Instance.PlaySE(tapSE);
 
+        GameResultData.Reset();
         SceneManager.LoadScene("MatchPuzzle");
     }
 }

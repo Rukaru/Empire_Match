@@ -220,7 +220,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tapSE: {fileID: 8300000, guid: 2d2d09a6fc325094b88f973598cb4552, type: 3}
-  titleBGM: {fileID: 8300000, guid: 8fa32132a360f584795dc3e18339a9a6, type: 3}
+  titleBGM: {fileID: 8300000, guid: 3eae296fbee4d9a48b3dd07826ed94c8, type: 3}
   Title: {fileID: 758529561}
 --- !u!1 &257944451
 GameObject:
@@ -960,7 +960,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tapSE: {fileID: 8300000, guid: 2d2d09a6fc325094b88f973598cb4552, type: 3}
-  titleBGM: {fileID: 8300000, guid: 8fa32132a360f584795dc3e18339a9a6, type: 3}
+  titleBGM: {fileID: 0}
   Title: {fileID: 0}
 --- !u!4 &1620642188
 Transform:
@@ -987,9 +987,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 8fa32132a360f584795dc3e18339a9a6, type: 3}
+  m_audioClip: {fileID: 8300000, guid: 907a9f81ef1486a4c8d0db04887356e2, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.53
   m_Pitch: 1
   Loop: 0
   Mute: 0

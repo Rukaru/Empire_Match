@@ -24,6 +24,11 @@ public class EnemyManager : MonoBehaviour
         SpawnNormal();
     }
 
+    public bool IsLastWave()
+    {
+        return currentWave >= maxWave;
+    }
+
     public void NextWave()
     {
 
@@ -57,10 +62,9 @@ public class EnemyManager : MonoBehaviour
 
     void SpawnNormal()
     {
+        currentWave = turnCount;
         EnemyDefintion def = normalEnemies[normalIndex];
         battleManager.SetEnemy(def, turnCount);
-
-        Debug.Log($"Normal Spawn : {def.enemyName}");
     }
 
     void SpawnBoss()
@@ -75,6 +79,6 @@ public class EnemyManager : MonoBehaviour
         GameResultData.survivedWave = currentWave - 1;
 
         Debug.Log("BATTLE CLEAR");
-        SceneManager.LoadScene("ResultScene");
+        //SceneManager.LoadScene("ResultScene");
     }
 }

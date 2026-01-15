@@ -8,10 +8,14 @@ using UnityEngine.SceneManagement;
 public class BattleManager : MonoBehaviour
 {
     [SerializeField] UIManager UI;
-
     int score;
     int killedEnemy;
     int killedBoss;
+
+    public int KilledEnemy => killedEnemy;
+    public int KilledBoss  => killedBoss;
+
+    public event System.Action<bool> OnBattleFinished;
 
     
     [Header("Player")]
@@ -277,13 +281,23 @@ public class BattleManager : MonoBehaviour
         StartCoroutine(EnemyDefeatedSequence());
 
         if (currentEnemy.def.isBoss)
-        GameResultData.killedBossCount++;
+        killedBoss++;
         else
-        GameResultData.killedEnemyCount++;
+        killedEnemy++;
 
-        GameResultData.score += 100;
+        if (enemyManager.IsLastWave())
+        {
+            Debug.Log("[BattleManager] All waves cleared");
+            BattleClear();
+            return;
+        }
+
+        StartCoroutine(EnemyDefeatedSequence());
+
+        //GameResultData.score += 100;
         enemyManager.NextWave();
     }
+
 
     IEnumerator EnemyDefeatedSequence()
     {
@@ -294,25 +308,13 @@ public class BattleManager : MonoBehaviour
 
     void BattleClear()
     {
-        GameResultData.isWin = true;
-        GameResultData.score = score;
-        GameResultData.killedEnemyCount = killedEnemy + 1;
-        GameResultData.killedBossCount = killedBoss;
-
-        SceneManager.LoadScene("ResultScene");
+        Debug.Log("[BattleManager] BattleClear Invoke");
+        OnBattleFinished?.Invoke(true);
     }
 
     void GameOver()
     {
-        GameResultData.isWin = false;
-        GameResultData.score = score;
-        GameResultData.killedEnemyCount = killedEnemy;
-        GameResultData.killedBossCount = killedBoss;
-
-        GameResultData.survivedWave = currentWave;
-
-        SceneManager.LoadScene("ResultScene");
-        Time.timeScale = 0;
+        Debug.Log("[BattleManager] GameOver Invoke");
+        OnBattleFinished?.Invoke(false);
     }
-
 }
