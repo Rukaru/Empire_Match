@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.Mathematics;
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -24,8 +24,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] TextMeshProUGUI textResultScore;
     [SerializeField] AudioClip seDelete;
     [SerializeField] Vector2 fieldOffset;   //UI調整用オフセット
-
-
+    
     TileController[,] fieldTiles;
     
 
@@ -51,6 +50,10 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     int comboScore;
     bool isInitialBoard = true;
 
+    [SerializeField] BattleManager battleManager;
+    
+    
+
     private int chainCount;
     private List<TileController> removedTilesAll = new List<TileController>();
     // 全連鎖の消去ピース
@@ -67,6 +70,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     {
         //サウンド
         audioSource = GetComponent<AudioSource>();
+        battleManager = FindObjectOfType<BattleManager>();
 
         //フィールドデータ作成
         fieldTiles = new TileController[filedWidth, filedHeight];
@@ -233,29 +237,23 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
     void ProcessChainResult()
     {
-        int red = 0;
-        int green = 0;
-        int blue = 0;
-        int yellow = 0;
+        PuzzleResult result = new PuzzleResult();
+        result.chain = chainCount;
 
         foreach(var tile in removedTilesAll)
         {
             switch (tile.ColorType)
             {
-                case 0: red++; break;
-                case 1: green++; break;
-                case 2: blue++; break;
-                case 3: yellow++; break;
+                case 0: result.red++; break;
+                case 1: result.green++; break;
+                case 2: result.yellow++; break;
+                case 3: result.blue++; break;
             }
         }
 
-        //BattleManager に渡す（後で実装）
-        PuzzleResult result = new PuzzleResult(chainCount, red, green, blue, yellow);
-
-        Debug.Log("連鎖結果 => " + result.ToString());
-        // 戦闘管理に送る予定（あとで作る）
-        // BattleManager.Instance.OnPuzzleChainResult(chainCount, red, green, blue, yellow);
-
+        battleManager.OnPuzzleChainResult(result);
+        //Debug.Log($"Calling BattleManager instance = {battleManager.GetInstanceID()}");
+        
         //次の連鎖反応まで備える
         chainCount = 0;
         removedTilesAll.Clear();
