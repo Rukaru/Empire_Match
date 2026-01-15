@@ -21,6 +21,7 @@ public class DamageFadeText : MonoBehaviour
 
     private void Update()
     {
+        //Kキーを押すと実行
         if (Input.GetKeyDown(KeyCode.K))
         {
             StartCoroutine(DamageText(11));
@@ -93,7 +94,7 @@ public class DamageFadeText : MonoBehaviour
             // 経過時間を記録
             elapsed += Time.deltaTime;
 
-            //　色をカエル
+            //　色を変更
             gameObject.GetComponent<TextMeshProUGUI>().color = Color.Lerp(startAlpha,endAlpha,elapsed/_FadeTime);
             yield return null;
         }
