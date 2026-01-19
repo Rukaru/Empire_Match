@@ -19,7 +19,8 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] SpriteRenderer field;
     [SerializeField] TileController prefabTile;
     [SerializeField] TextMeshProUGUI textGameScore;
-    [SerializeField] TextMeshProUGUI textCombo;
+    [SerializeField] TextMeshProUGUI comboLabel;
+    [SerializeField] TextMeshProUGUI comboValue;
     [SerializeField] GameObject panelResult;
     [SerializeField] TextMeshProUGUI textResultScore;
     [SerializeField] AudioClip seDelete;
@@ -74,7 +75,6 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         battleManager = FindObjectOfType<BattleManager>();
         if (battleManager == null)
         {
-            Debug.LogError("BattleManager が見つからない！");
             return;
         }
         battleManager.OnBattleFinished += OnBattleFinished;
@@ -303,8 +303,8 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
                 isTouchDown = true;
             }
 
-            if(isInitialBoard)
-            isInitialBoard = false;
+            // if(isInitialBoard)
+            // isInitialBoard = false;
         }
         //タッチ離れたとき
         else if (Input.GetMouseButtonUp(0))
@@ -516,14 +516,15 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
             chainCount++;
         }
 
-        //先に removedTilesAll に入れる（Delete() より前）
-        foreach (var item in deleteTiles)
+        if (countScore)
         {
-            TileController tile = GetFieldTile(item.x, item.y);
-            if(tile != null)
+            foreach (var item in deleteTiles)
             {
-                removedTilesAll.Add(tile);
-                //DeleteTiles の「内部データクリアより前（tile.Delete() より前）」で入れるのが安全
+                TileController tile = GetFieldTile(item.x, item.y);
+                if(tile != null)
+                {
+                    removedTilesAll.Add(tile);
+                }
             }
         }
 
@@ -595,14 +596,15 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
     //コンボ表示
     void UpdateTextCombo()
     {
-        string text = "" + comboScore + " Combo!!";
-
         if(comboScore < 2)
         {
-            text = "";
+            comboValue.text = "";
+            comboLabel.text = "";
+            return;
         }
 
-        textCombo.text = text;
+        comboLabel.text = comboScore.ToString();
+        comboValue.text = " Combo!!";
     }
 
     //このタイルはスワイプするとどれかの方向でマッチが作れる

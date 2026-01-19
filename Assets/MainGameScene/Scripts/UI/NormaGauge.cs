@@ -68,6 +68,7 @@ public class NormaGauge
     {
         red = green = yellow = blue = 0;
     }
+    
 
 }
 

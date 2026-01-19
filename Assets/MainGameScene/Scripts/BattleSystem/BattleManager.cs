@@ -74,11 +74,11 @@ public class BattleManager : MonoBehaviour
     ---------------------------------------------------*/
     void UpdateNormaUI()
     {
-        UI.SetGauge(UI.redGauge, (float)norma.red / norma.redMax);
-        UI.SetGauge(UI.greenGauge, (float)norma.green / norma.greenMax);
-        UI.SetGauge(UI.blueGauge, (float)norma.blue / norma.blueMax);
-        UI.SetGauge(UI.yellowGauge, (float)norma.yellow / norma.yellowMax);
-
+        // 格子ゲージ版（value/max をそのまま渡す）
+        UI.SetGridGauge(UI.redGrid, norma.red, norma.redMax);
+        UI.SetGridGauge(UI.greenGrid, norma.green, norma.greenMax);
+        UI.SetGridGauge(UI.blueGrid, norma.blue, norma.blueMax);
+        UI.SetGridGauge(UI.yellowGrid, norma.yellow, norma.yellowMax);
         Debug.Log($"Norma red = {norma.red}/{norma.redMax}");
     }
 
@@ -103,8 +103,15 @@ public class BattleManager : MonoBehaviour
 
     void HealPlayer(int value)
     {
-        playerHP += value;
-        if (playerHP > playerMaxHP) playerHP = playerMaxHP;
+        int before = playerHP;
+        playerHP = Mathf.Min(playerHP + value, playerMaxHP);
+        int healed = playerHP - before;
+
+        if (healed > 0)
+        {
+            UI.PopupPlayerHeal(healed);
+            UI.PlayHeal();
+        }
 
         UpdatePlayerHPUI();
     }
@@ -156,7 +163,14 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        ApplyNormalAttack();
+        if(result.red > 0)
+        {
+            ApplyNormalAttack();
+        }
+        else
+        {
+            EnemyTurnProgress();
+        }
     }
 
     void ApplyNormaEffects(NormaType type)
@@ -172,6 +186,10 @@ public class BattleManager : MonoBehaviour
             case NormaType.Red:
                 Debug.Log("赤ノルマ発動：カミツキ");
                 currentEnemy.TakeDamage(red_bonus_attack);
+                
+                UI.PopupEnemyDamage(red_bonus_attack, true);
+                UI.PlayHitBonus();
+                enemyView.FlashDamage();
                 break;
 
             case NormaType.Green:
@@ -197,8 +215,11 @@ public class BattleManager : MonoBehaviour
     ---------------------------------------------------*/
     void ApplyNormalAttack()
     {
-        int damage = CalculateNormalDamage();
+        int damage = CalculateNormalDamage();   // 200など
         currentEnemy.TakeDamage(damage);
+
+        UI.PopupEnemyDamage(damage, false);
+        UI.PlayHitNormal();
 
         UpdateEnemyHPUI();
         enemyView.FlashDamage();
@@ -252,17 +273,18 @@ public class BattleManager : MonoBehaviour
     
     void EnemyAttack()
     {
-        int damage = currentEnemy.GetAttackDamage();
-        //playerHP = Mathf.Max(playerHP - damage, 0);
-
         StartCoroutine(UI.ScreenDamageFlash());
 
-        Debug.Log($"敵攻撃！ damage={currentEnemy.AttackDamage}");
-        playerHP = Mathf.Max(playerHP - currentEnemy.AttackDamage, 0);
+        int damage = currentEnemy.GetAttackDamage();
+        playerHP = Mathf.Max(playerHP - damage, 0);
+
+        //playerHP = Mathf.Max(playerHP - currentEnemy.AttackDamage, 0);
+        UI.PopupPlayerDamage(damage);
+        UI.PlayPlayerDamage();
 
         UpdatePlayerHPUI();
 
-        if(playerMaxHP <= 0)
+        if(playerHP <= 0)
         {
             GameOver();
         }
@@ -278,24 +300,10 @@ public class BattleManager : MonoBehaviour
         norma.ResetAll();// Wave終了時リセット
         UpdateNormaUI();
 
-        StartCoroutine(EnemyDefeatedSequence());
-
-        if (currentEnemy.def.isBoss)
-        killedBoss++;
-        else
-        killedEnemy++;
-
-        if (enemyManager.IsLastWave())
-        {
-            Debug.Log("[BattleManager] All waves cleared");
-            BattleClear();
-            return;
-        }
+        if(currentEnemy.def.isBoss) killedBoss++;
+        else killedEnemy++;
 
         StartCoroutine(EnemyDefeatedSequence());
-
-        //GameResultData.score += 100;
-        enemyManager.NextWave();
     }
 
 
@@ -306,15 +314,14 @@ public class BattleManager : MonoBehaviour
         enemyManager.NextWave();
     }
 
-    void BattleClear()
+    public void EndBattle(bool isWin)
     {
-        Debug.Log("[BattleManager] BattleClear Invoke");
-        OnBattleFinished?.Invoke(true);
+        Debug.Log(isWin ? "[BattleManager] BattleClear Invoke" : "[BattleManager] GameOver Invoke");
+        OnBattleFinished?.Invoke(isWin);
     }
 
     void GameOver()
     {
-        Debug.Log("[BattleManager] GameOver Invoke");
-        OnBattleFinished?.Invoke(false);
+       EndBattle(false);
     }
 }

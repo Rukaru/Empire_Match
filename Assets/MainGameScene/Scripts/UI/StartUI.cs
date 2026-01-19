@@ -22,4 +22,10 @@ public class StarttUI : MonoBehaviour, IPointerClickHandler
         GameResultData.Reset();
         SceneManager.LoadScene("MatchPuzzle");
     }
+
+    public void GameGuide()
+    {
+        SceneManager.LoadScene("GuideScene");
+        //AudioManager.Instance.PlaySE(tapSE);
+    }
 }

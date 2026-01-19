@@ -11,8 +11,11 @@ public class ResultUI : MonoBehaviour
     [SerializeField] TextMeshProUGUI resultText;
     //[SerializeField] TextMeshProUGUI scoreText;
     [SerializeField] TextMeshProUGUI enemyText;
+    [SerializeField] TextMeshProUGUI enemyValue;
     [SerializeField] TextMeshProUGUI maxComboText;
+    [SerializeField] TextMeshProUGUI maxComboValue;
     [SerializeField] TextMeshProUGUI scoreText;
+    [SerializeField] TextMeshProUGUI scoreValue;
     [SerializeField] TextMeshProUGUI bossText;
     [SerializeField] AudioClip tapSE;
 
@@ -22,9 +25,12 @@ public class ResultUI : MonoBehaviour
         Debug.Log($"[RESULT] score={GameResultData.score}, maxCombo={GameResultData.maxCombo}");
 
         resultText.text = GameResultData.isWin ? "YOU WIN" : "GAME OVER";
-        scoreText.text = $"Score : {GameResultData.score}";
-        enemyText.text = $"Enemies : {GameResultData.killedEnemyCount}";
-        maxComboText.text = $"MaxCombo : {GameResultData.maxCombo}";
+        scoreText.text = $"Score :";
+        scoreValue.text = $" {GameResultData.score}";
+        enemyText.text = $"KilledEnemies :";
+        enemyValue.text = $" {GameResultData.killedEnemyCount}";
+        maxComboText.text = $"MaxCombo :";
+        maxComboValue.text = $" {GameResultData.maxCombo}";
 
         //bossText.text = $"Bosses : {GameResultData.killedBossCount}";
     }
@@ -32,6 +38,7 @@ public class ResultUI : MonoBehaviour
     public void ReturnToTitle()
     {
         SceneManager.LoadScene("TitleScene");
+        if (AudioManager.Instance != null)
         AudioManager.Instance.PlaySE(tapSE);
     }
 }

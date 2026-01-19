@@ -16,5 +16,5 @@ MonoBehaviour:
   sp: {fileID: 21300000, guid: 30808d52ae2284440a5d87041bf4a26c, type: 3}
   isBoss: 0
   baseHP: 1000
-  attackDamage: 400
-  maxTurn: 5
+  attackDamage: 100
+  maxTurn: 3
