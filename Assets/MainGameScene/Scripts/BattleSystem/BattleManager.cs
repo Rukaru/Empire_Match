@@ -55,7 +55,6 @@ public class BattleManager : MonoBehaviour
     [SerializeField] int finisherComboThreshold = 10;
     [SerializeField] int finisherDamage = 1200;
     [SerializeField] int finisherBonusScore = 2000;
-    bool finisherUsed = false;
 
     int turnCount = 0;
     public int TurnCount => turnCount;
@@ -137,7 +136,6 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator ResolveTurn(PuzzleResult result)
     {
-        Debug.Log($"[FINISH CHECK] finisherUsed={finisherUsed} maxCombo={result.maxComboThisTurn} threshold={finisherComboThreshold}");
         
         resolvingTurn = true;
 
@@ -174,38 +172,12 @@ public class BattleManager : MonoBehaviour
         // -------------------------
         // ★4) 必殺を「ここで即判定」→ 必殺だけで終了（混ざらない）
         // -------------------------
-        if (!finisherUsed && result.maxComboThisTurn >= finisherComboThreshold)
+        if ( result.maxComboThisTurn >= finisherComboThreshold)
         {
-            finisherUsed = true;
-
-            // 必殺演出
-            UI.PlayFinisher();
-            UI.ShowFinisherCutin(1.2f);
-
-            var cam = Camera.main;
-            if (cam && cam.TryGetComponent(out CameraShake shake))
-            {
-                shake.Play(0.15f, 1.2f); // (duration, strength)
-            }
-
-            // 必殺ダメージ（これだけ）
-            currentEnemy.TakeDamage(finisherDamage);
-            UpdateEnemyHPUI();
-            enemyView.FlashDamage();
-
-            UI.PopupEnemyDamageText($"-{finisherDamage} !!", UI.GetBonusColor());
-            UI.AddScore(finisherBonusScore);
-
-            if (currentEnemy.hp <= 0)
-            {
-                OnEnemyDefeated();
-            }
-
-            yield return null;
-
+            yield return StartCoroutine(DoFinisher());
 
             resolvingTurn = false;
-            yield break; // ★ここが重要：このターンの他の処理を全部止める
+            yield break; // ← 他の攻撃・ノルマを完全に止める
         }
 
         // -------------------------
@@ -338,10 +310,11 @@ public class BattleManager : MonoBehaviour
         return damage;
     }
     
-    void DoFinisher()
+    IEnumerator DoFinisher()
     {
-        if (currentEnemy == null) return;
+        if (currentEnemy == null) yield break;
 
+        //必殺演出
         UI.PlayFinisher();
         UI.ShowFinisherCutin(1.2f);
 
@@ -351,16 +324,25 @@ public class BattleManager : MonoBehaviour
             shake.Play(0.15f, 1.2f); // ←短いほど気持ちいい（おすすめ）
         }
 
-        UI.PlayFinisherHit();
+        //カットイン見せる時間
+        yield return new WaitForSeconds(0.4f);
 
-        UI.PopupEnemyDamage(finisherDamage, true);
+        UI.PlayFinisherHit();
         enemyView.FlashDamage();
 
         currentEnemy.TakeDamage(finisherDamage);
         UpdateEnemyHPUI();
 
+        UI.PopupEnemyDamageText($"-{finisherDamage} !!", UI.GetBonusColor());
         //スコアは「Resultに反映されるところ」に足す必要あり
         UI.AddScore(finisherBonusScore);
+        
+        //ヒット時の追加揺れ（さらに弱く）
+        if (cam && cam.TryGetComponent(out shake))
+        {
+            shake.Play(0.15f, 1.2f);
+        }
+
 
         if(currentEnemy.hp <= 0)
         {

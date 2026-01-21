@@ -15,6 +15,6 @@ MonoBehaviour:
   enemyName: Tigger
   sp: {fileID: 21300000, guid: 15136cda27f148c4c8930c5bd9eb976e, type: 3}
   isBoss: 0
-  baseHP: 2000
-  attackDamage: 500
+  baseHP: 2200
+  attackDamage: 550
   maxTurn: 4

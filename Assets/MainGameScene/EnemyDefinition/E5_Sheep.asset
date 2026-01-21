@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3e2c3891ba8ff34ea530d1c66d3adee, type: 3}
-  m_Name: E3_Sheep
+  m_Name: E5_Sheep
   m_EditorClassIdentifier: 
   enemyName: Sheep
   sp: {fileID: 21300000, guid: 2d55438814fc20645972d806a80ac2c4, type: 3}
   isBoss: 0
-  baseHP: 1700
-  attackDamage: 450
-  maxTurn: 3
+  baseHP: 2500
+  attackDamage: 600
+  maxTurn: 5

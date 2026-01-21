@@ -6855,7 +6855,7 @@ MonoBehaviour:
   enemyView: {fileID: 1965323697}
   normalAttack: 150
   redBonusAttack: 300
-  greenHeal: 300
+  greenHeal: 250
   blueDebuffRate: 0.5
   yellowAttackMul: 2
   lockedTileScore: 50
