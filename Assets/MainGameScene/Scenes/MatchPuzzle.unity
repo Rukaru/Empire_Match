@@ -772,6 +772,7 @@ MonoBehaviour:
   menuRoot: {fileID: 1812975659}
   gameSceneName: MatchPuzzle
   titleSceneName: TitleScene
+  tapSE: {fileID: 8300000, guid: 2d2d09a6fc325094b88f973598cb4552, type: 3}
 --- !u!1 &140503331
 GameObject:
   m_ObjectHideFlags: 0
@@ -1117,8 +1118,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 187.4}
-  m_SizeDelta: {x: 200, y: 40}
+  m_AnchoredPosition: {x: 0.2, y: 53.7}
+  m_SizeDelta: {x: 300, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &180000600
 MonoBehaviour:
@@ -1189,7 +1190,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.99371064, g: 0.97670543, b: 0.96558666, a: 0}
+  m_Color: {r: 0.9490196, g: 0.654902, b: 0.4627451, a: 0.5529412}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2770,7 +2771,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 8f9278b092d4c2549a3a69c4cfec392d, type: 3}
-    m_FontSize: 30
+    m_FontSize: 40
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 3
@@ -2826,8 +2827,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 49.5}
-  m_SizeDelta: {x: 200, y: 40}
+  m_AnchoredPosition: {x: -3.1, y: -158.2}
+  m_SizeDelta: {x: 300, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &480933362
 MonoBehaviour:
@@ -2898,7 +2899,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.9496855, g: 0.65530175, b: 0.46289697, a: 0}
+  m_Color: {r: 0.9496855, g: 0.65530175, b: 0.46289697, a: 0.5529412}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3600,8 +3601,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -89.93}
-  m_SizeDelta: {x: 200, y: 40}
+  m_AnchoredPosition: {x: 2, y: 247.84}
+  m_SizeDelta: {x: 300, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &598274458
 MonoBehaviour:
@@ -3672,7 +3673,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.9559748, g: 0.9287007, b: 0.9108816, a: 0}
+  m_Color: {r: 0.9490196, g: 0.654902, b: 0.4627451, a: 0.5529412}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4692,7 +4693,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 8f9278b092d4c2549a3a69c4cfec392d, type: 3}
-    m_FontSize: 30
+    m_FontSize: 40
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 3
@@ -6095,7 +6096,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 12800000, guid: 8f9278b092d4c2549a3a69c4cfec392d, type: 3}
-    m_FontSize: 30
+    m_FontSize: 40
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 3
@@ -7540,14 +7541,14 @@ MonoBehaviour:
     blue: 0
     yellow: 0
   enemyView: {fileID: 1965323697}
-  normalAttack: 150
+  normalAttack: 200
   redBonusAttack: 300
-  greenHeal: 300
+  greenHeal: 200
   blueDebuffRate: 0.5
   yellowAttackMul: 2
   lockedTileScore: 50
-  finisherComboThreshold: 8
-  finisherDamage: 1200
+  finisherComboThreshold: 10
+  finisherDamage: 1700
   finisherBonusScore: 2000
 --- !u!1 &1590020473
 GameObject:
@@ -8023,14 +8024,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.98735446, g: 1, b: 0.9779874, a: 0.7019608}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 83ca83462ac8e6f4aaa998cd65964769, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8057,7 +8058,7 @@ RectTransform:
   m_GameObject: {fileID: 1812975659}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.7, y: 1, z: 1}
+  m_LocalScale: {x: 0.46, y: 0.58, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 180000599}
@@ -8783,9 +8784,9 @@ MonoBehaviour:
   battleManager: {fileID: 1503826498}
   normalEnemies:
   - {fileID: 11400000, guid: 9c5658cef6922f641ae929a0adb23267, type: 2}
+  - {fileID: 11400000, guid: 1ac4f4031a9cc0f4b99f0388abe69f3f, type: 2}
   - {fileID: 11400000, guid: e5e62c3e9e3304349a0aef1ae6d4d967, type: 2}
   - {fileID: 11400000, guid: a9452d0870324734887efedba2887401, type: 2}
-  - {fileID: 11400000, guid: 1ac4f4031a9cc0f4b99f0388abe69f3f, type: 2}
   bossEnemy: {fileID: 11400000, guid: ada30ebdb1c17954ab4bbe1a5845acc5, type: 2}
   maxWave: 5
 --- !u!1 &2106516249

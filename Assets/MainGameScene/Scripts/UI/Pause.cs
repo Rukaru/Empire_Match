@@ -14,6 +14,9 @@ public class Pause : MonoBehaviour
     [SerializeField] string gameSceneName = "MatchPuzzle";
     [SerializeField] string titleSceneName = "TitleScene";
 
+    [Header("SE")]
+    [SerializeField] AudioClip tapSE;
+
     bool isOpen = false;
     
     void Start()
@@ -39,20 +42,29 @@ public class Pause : MonoBehaviour
         Time.timeScale = open ? 0f : 1f;
     }
 
+    void PlayTapSE()
+    {
+        if(AudioManager.Instance != null && tapSE != null)
+        AudioManager.Instance.PlaySE(tapSE);
+    }
+
     public void OnclickReStart()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(gameSceneName);
+        PlayTapSE();
     }
 
     public void OnclickContinue()
     {
         SetOpen(false);
+        PlayTapSE();
     }
 
     public void OnClickExitToTitle()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(titleSceneName);
+        PlayTapSE();
     }
 }
