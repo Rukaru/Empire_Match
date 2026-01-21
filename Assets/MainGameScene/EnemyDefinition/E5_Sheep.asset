@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: Sheep
   sp: {fileID: 21300000, guid: 2d55438814fc20645972d806a80ac2c4, type: 3}
-  isBoss: 0
+  isBoss: 1
   baseHP: 2500
   attackDamage: 600
   maxTurn: 5

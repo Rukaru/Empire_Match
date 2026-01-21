@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   enemyName: Bear
   sp: {fileID: 21300000, guid: 73454195769b3f74ea1487d6248e0278, type: 3}
-  isBoss: 1
+  isBoss: 0
   baseHP: 2000
   attackDamage: 500
   maxTurn: 4
