@@ -15,6 +15,6 @@ MonoBehaviour:
   enemyName: Lion
   sp: {fileID: 21300000, guid: 2e46a79ccf74c7347bc326c48afe4d26, type: 3}
   isBoss: 0
-  baseHP: 1500
+  baseHP: 1000
   attackDamage: 400
   maxTurn: 3

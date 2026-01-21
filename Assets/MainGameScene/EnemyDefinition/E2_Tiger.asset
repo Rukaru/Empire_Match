@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3e2c3891ba8ff34ea530d1c66d3adee, type: 3}
-  m_Name: E2_Hawck
+  m_Name: E2_Tiger
   m_EditorClassIdentifier: 
-  enemyName: Hawk
-  sp: {fileID: 21300000, guid: 5247049b8ca87e741958c82e041f5849, type: 3}
+  enemyName: Tigger
+  sp: {fileID: 21300000, guid: 15136cda27f148c4c8930c5bd9eb976e, type: 3}
   isBoss: 0
-  baseHP: 1500
-  attackDamage: 400
-  maxTurn: 3
+  baseHP: 700
+  attackDamage: 300
+  maxTurn: 2

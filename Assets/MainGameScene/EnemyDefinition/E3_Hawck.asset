@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3e2c3891ba8ff34ea530d1c66d3adee, type: 3}
-  m_Name: E3_Bear
+  m_Name: E3_Hawck
   m_EditorClassIdentifier: 
-  enemyName: Bear
-  sp: {fileID: 21300000, guid: 73454195769b3f74ea1487d6248e0278, type: 3}
+  enemyName: Hawk
+  sp: {fileID: 21300000, guid: 5247049b8ca87e741958c82e041f5849, type: 3}
   isBoss: 0
-  baseHP: 2000
-  attackDamage: 500
-  maxTurn: 4
+  baseHP: 1500
+  attackDamage: 400
+  maxTurn: 3
