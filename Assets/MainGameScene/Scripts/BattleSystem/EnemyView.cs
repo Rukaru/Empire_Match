@@ -37,6 +37,11 @@ public class EnemyView : MonoBehaviour
     public void FlashDamage() // ダメージフラッシュ（赤くなる）
     {
         StopAllCoroutines();
+
+        Color c = sr.color;
+        c.a = 1f;
+        sr.color = c;
+        
         StartCoroutine(DamageFlash());
     }
 

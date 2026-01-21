@@ -14,15 +14,18 @@ public class PuzzleResult
     public int yellow;
     public int blue;
 
+    public int maxComboThisTurn;
+
     public PuzzleResult(){ }
 
-    public PuzzleResult(int chain, int red, int green, int yellow, int blue)
+    public PuzzleResult(int chain, int red, int green, int yellow, int blue, int maxComboThisTurn)
     {
         this.chain = chain;
         this.red = red;
         this.green = green;
         this.yellow = yellow;
         this.blue = blue;
+        this.maxComboThisTurn = maxComboThisTurn;
     }
 
     public override string ToString()
