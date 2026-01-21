@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3e2c3891ba8ff34ea530d1c66d3adee, type: 3}
-  m_Name: Boss_Test
+  m_Name: E1_Lion
   m_EditorClassIdentifier: 
-  enemyName: Boss
-  sp: {fileID: 21300000, guid: 406093e2bd37f9b479425bdca4f94a91, type: 3}
-  isBoss: 1
-  baseHP: 1000
-  attackDamage: 100
+  enemyName: Tiger
+  sp: {fileID: 21300000, guid: 2e46a79ccf74c7347bc326c48afe4d26, type: 3}
+  isBoss: 0
+  baseHP: 1500
+  attackDamage: 400
   maxTurn: 3

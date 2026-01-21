@@ -266,9 +266,8 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
                 case 3: result.blue++; break;
             }
         }
-
+        result.maxComboThisTurn = maxComboScore;
         battleManager.OnPuzzleChainResult(result);
-        //Debug.Log($"Calling BattleManager instance = {battleManager.GetInstanceID()}");
         
         //次の連鎖反応まで備える
         chainCount = 0;

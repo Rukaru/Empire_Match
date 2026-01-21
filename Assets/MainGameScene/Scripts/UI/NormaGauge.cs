@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,24 +13,36 @@ public class NormaGauge
     public int blueMax = 10;
     public int yellowMax = 10;
 
+    public bool blueLocked;//発動中ゲージ禁止
+    public bool yellowLocked;
+
     [Header("Current")]
     public int red;
     public int green;
     public int blue;
     public int yellow;
+
+
+    public void ResetAll()
+    {
+        red = green = blue = yellow =  0;
+        blueLocked = false;
+        yellowLocked = false;
+    }
    
    // ゲージ加算
     public void Add(PuzzleResult result)
     {
         red += result.red;
         green += result.green;
-        yellow += result.yellow;
-        blue += result.blue;
 
-        red = Mathf.Min(red, redMax);
+        if (!yellowLocked) yellow += result.yellow;
+        if (!blueLocked)   blue   += result.blue;
+
+        red   = Mathf.Min(red, redMax);
         green = Mathf.Min(green, greenMax);
-        blue = Mathf.Min(blue, blueMax);
         yellow = Mathf.Min(yellow, yellowMax);
+        blue   = Mathf.Min(blue, blueMax);
 
         Debug.Log($"[Norma Add] R:{red} G:{green} B:{blue} Y:{yellow}");
     }
@@ -39,36 +52,29 @@ public class NormaGauge
     {
         if (red >= redMax)
         {
-            red -= redMax;
+            red = 0;
             return NormaType.Red;
         }
 
         if (green >= greenMax)
         {
-            green -= greenMax;
+            green = 0;
             return NormaType.Green;
         }
 
         if (yellow >= yellowMax)
         {
-            yellow -= yellowMax;
+            yellow = 0;
             return NormaType.Yellow;
         }
 
         if (blue >= blueMax)
         {
-            blue -= blueMax;
+            blue = 0;
             return NormaType.Blue;
         }
 
         return NormaType.None;
     }
-
-    public void ResetAll()
-    {
-        red = green = yellow = blue = 0;
-    }
-    
-
 }
 

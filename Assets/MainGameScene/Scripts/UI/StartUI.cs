@@ -11,11 +11,12 @@ public class StarttUI : MonoBehaviour, IPointerClickHandler
 
     void Start()
     {
-        BGMManager.Instance.Play(titleBGM);
+        AudioManager.Instance.PlayBGM(titleBGM);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        Debug.Log("Clicked");
         if (AudioManager.Instance != null)
         AudioManager.Instance.PlaySE(tapSE);
 
