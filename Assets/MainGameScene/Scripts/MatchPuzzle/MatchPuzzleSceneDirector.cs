@@ -267,11 +267,13 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
             }
         }
         result.maxComboThisTurn = maxComboScore;
+
         battleManager.OnPuzzleChainResult(result);
         
         //次の連鎖反応まで備える
         chainCount = 0;
         removedTilesAll.Clear();
+        maxComboScore = 0;
     }
 
     void FallMode()
