@@ -18,6 +18,8 @@ public class BattleManager : MonoBehaviour
     public event System.Action<bool> OnBattleFinished;
 
     bool resolvingTurn = false;
+    int maxCombo = 0;
+    public int MaxCombo => maxCombo;
 
     
     [Header("Player")]
@@ -136,9 +138,15 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator ResolveTurn(PuzzleResult result)
     {
-        
         resolvingTurn = true;
 
+        if(result.maxComboThisTurn > GameResultData.maxCombo)
+        {
+            GameResultData.maxCombo = result.maxComboThisTurn;
+            Debug.Log($"[SAVE] GameResultData.maxCombo updated => {GameResultData.maxCombo}");    
+        }
+
+        maxCombo = Mathf.Max(maxCombo, result.maxComboThisTurn);
         Debug.Log($"[TURN] {result}");
 
         // -------------------------
@@ -445,6 +453,7 @@ public class BattleManager : MonoBehaviour
     {
         Debug.Log($"[EndBattle] isWin={isWin} turnCount={turnCount}");
         
+        Debug.Log($"[EndBattle] maxCombo(final)={GameResultData.maxCombo}");
         GameResultData.isWin = isWin;
 
         if(isWin) GameResultData.clearTurns = turnCount;

@@ -251,6 +251,8 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         gameMode = GameMode.Touch;
     }
 
+    int bestMaxCombo = 0;
+
     void ProcessChainResult()
     {
         PuzzleResult result = new PuzzleResult();
@@ -647,11 +649,10 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
 
     void GameResult(bool isWin)
     {
-        Debug.Log($"[SAVE] score={gameScore}, maxCombo={maxComboScore}");
+        Debug.Log($"[SAVE] score={gameScore}, maxCombo={battleManager.MaxCombo}");
 
         GameResultData.isWin = isWin;
         GameResultData.score = gameScore;
-        GameResultData.maxCombo = maxComboScore;
 
         GameResultData.killedEnemyCount = battleManager.KilledEnemy;
         GameResultData.killedBossCount = battleManager.KilledBoss;
