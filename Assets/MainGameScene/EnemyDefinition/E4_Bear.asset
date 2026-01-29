@@ -15,6 +15,6 @@ MonoBehaviour:
   enemyName: Bear
   sp: {fileID: 21300000, guid: 73454195769b3f74ea1487d6248e0278, type: 3}
   isBoss: 0
-  baseHP: 1800
-  attackDamage: 600
-  maxTurn: 6
+  baseHP: 2000
+  attackDamage: 1500
+  maxTurn: 9

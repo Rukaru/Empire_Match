@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro;
 
 using UnityEngine;
@@ -597,7 +598,7 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
     }
 
     //コンボ表示
-    void UpdateTextCombo()
+    async Task UpdateTextCombo()
     {
         if(comboScore < 2)
         {
@@ -608,6 +609,9 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
 
         comboLabel.text = comboScore.ToString();
         comboValue.text = " Combo!!";
+        comboLabel.fontSize = 120;
+        await Task.Delay(300);
+        comboLabel.fontSize = 80;
     }
 
     //このタイルはスワイプするとどれかの方向でマッチが作れる
