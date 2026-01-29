@@ -19,7 +19,8 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] SpriteRenderer field;
     [SerializeField] TileController prefabTile;
     [SerializeField] TextMeshProUGUI textGameScore;
-    [SerializeField] TextMeshProUGUI textCombo;
+    [SerializeField] TextMeshProUGUI comboLabel;
+    [SerializeField] TextMeshProUGUI comboValue;
     [SerializeField] GameObject panelResult;
     [SerializeField] TextMeshProUGUI textResultScore;
     [SerializeField] AudioClip seDelete;
@@ -48,6 +49,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     
     int gameScore;
     int comboScore;
+    int maxComboScore;
     bool isInitialBoard = true;
 
     [SerializeField] BattleManager battleManager;
@@ -71,6 +73,12 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         //サウンド
         audioSource = GetComponent<AudioSource>();
         battleManager = FindObjectOfType<BattleManager>();
+        if (battleManager == null)
+        {
+            return;
+        }
+        battleManager.OnBattleFinished += OnBattleFinished;
+
 
         //フィールドデータ作成
         fieldTiles = new TileController[filedWidth, filedHeight];
@@ -91,6 +99,12 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         SpawnTiles();
 
         gameMode = GameMode.WaitFall;
+    }
+
+    void OnBattleFinished(bool isWin)
+    {
+         Debug.Log($"[MatchPuzzle] OnBattleFinished received isWin={isWin}");
+        GameResult(isWin);
     }
 
     void Update()
@@ -199,41 +213,45 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
     void DeleteMode()
     {
-        //デフォルトタッチモードへ
-        gameMode = GameMode.Touch;
+        // 削除対象タイル取得
         List<Vector2Int> deleteTiles = GetDeleteTiles();
 
+        // ─────────────────────
+        // 削除がある場合（連鎖中）
+        // ─────────────────────
+
+        // 🔽 削除がある場合
         if (deleteTiles.Count > 0)
         {
+            // タイル削除（初期盤面でも削除はする）
             DeleteTiles(deleteTiles);
+
+            // 削除後は必ず落下処理へ
             gameMode = GameMode.Fall;
+            return;
         }
-        else 
+
+        // 🔽 削除が無い = 盤面が完全に安定した状態
+        // ───────────────────────────
+
+        // ★ 初期盤面処理の終了判定は「ここ」だけで行う
+        if (isInitialBoard)
         {
-            List<Vector2Int> movableTiles = GetMovableTiles();
-            if(movableTiles.Count < 1)
-            {
-                deleteTiles.Clear();
-
-                foreach(var tile in fieldTiles)
-                {
-                    Vector2Int index = WorldToIndexPosition(tile.transform.position);
-                    deleteTiles.Add(index);
-                }
-
-                DeleteTiles(deleteTiles);//全タイル削除
-
-                gameMode = GameMode.Fall;
-            }
-
-            //連鎖が完全に終了したタイミングで結果をまとめる
-            if (!isInitialBoard && removedTilesAll.Count > 0)
-            {
-                ProcessChainResult();
-            }
-
+            isInitialBoard = false;
+            Debug.Log("初期盤面処理完了");
         }
+
+        // ★ 連鎖が一度でも起きていれば結果を確定
+        if (removedTilesAll.Count > 0)
+        {
+            ProcessChainResult();
+        }
+
+        // 入力可能状態へ戻す
+        gameMode = GameMode.Touch;
     }
+
+    int bestMaxCombo = 0;
 
     void ProcessChainResult()
     {
@@ -250,13 +268,14 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
                 case 3: result.blue++; break;
             }
         }
+        result.maxComboThisTurn = maxComboScore;
 
         battleManager.OnPuzzleChainResult(result);
-        //Debug.Log($"Calling BattleManager instance = {battleManager.GetInstanceID()}");
         
         //次の連鎖反応まで備える
         chainCount = 0;
         removedTilesAll.Clear();
+        maxComboScore = 0;
     }
 
     void FallMode()
@@ -287,8 +306,8 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
                 isTouchDown = true;
             }
 
-            if(isInitialBoard)
-            isInitialBoard = false;
+            // if(isInitialBoard)
+            // isInitialBoard = false;
         }
         //タッチ離れたとき
         else if (Input.GetMouseButtonUp(0))
@@ -493,19 +512,22 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
     //タイル削除
     void DeleteTiles(List<Vector2Int> deleteTiles)
     {
-        if (!isInitialBoard)//最初の盤面生成じゃなければ連鎖カウント
+        bool countScore = !isInitialBoard;
+
+        if(countScore)
         {
-            chainCount++;    
+            chainCount++;
         }
 
-        //先に removedTilesAll に入れる（Delete() より前）
-        foreach (var item in deleteTiles)
+        if (countScore)
         {
-            TileController tile = GetFieldTile(item.x, item.y);
-            if(tile != null)
+            foreach (var item in deleteTiles)
             {
-                removedTilesAll.Add(tile);
-                //DeleteTiles の「内部データクリアより前（tile.Delete() より前）」で入れるのが安全
+                TileController tile = GetFieldTile(item.x, item.y);
+                if(tile != null)
+                {
+                    removedTilesAll.Add(tile);
+                }
             }
         }
 
@@ -517,23 +539,23 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
             tile.Delete();
             SetFieldTile(item.x, item.y);//内部データクリア
         }
-        if (isInitialBoard)
-        {
-            comboScore = 0;
-            UpdateTextCombo();
-            return;
-        }
 
         //スコアとコンボ計算
+        if(!countScore) return;
 
         comboScore++;
         UpdateTextCombo();
 
-        int baseScore = deleteTiles.Count * deleteScore;
-        int comboCount = comboScore * deleteScore;
+        if (comboScore > maxComboScore)//最大値の更新
+        {
+            maxComboScore = comboScore;
+        }
 
-        gameScore += baseScore + comboScore;
-        textGameScore.text = "" + gameScore;
+        int baseScore = deleteTiles.Count * deleteScore;
+        int comboBonus = comboScore * deleteScore;
+
+        gameScore += baseScore + comboBonus;
+        textGameScore.text = gameScore.ToString();
 
         //SE
         audioSource.PlayOneShot(seDelete);
@@ -577,14 +599,15 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
     //コンボ表示
     void UpdateTextCombo()
     {
-        string text = "" + comboScore + " Combo!!";
-
         if(comboScore < 2)
         {
-            text = "";
+            comboValue.text = "";
+            comboLabel.text = "";
+            return;
         }
 
-        textCombo.text = text;
+        comboLabel.text = comboScore.ToString();
+        comboValue.text = " Combo!!";
     }
 
     //このタイルはスワイプするとどれかの方向でマッチが作れる
@@ -623,13 +646,18 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
         return movableTiles;
     }
 
-    void GameResult()
-    {
-        textResultScore.text = "" + gameScore;
-        panelResult.SetActive(true);
 
-        enabled = false;
-        CleaerAllTils();
+    void GameResult(bool isWin)
+    {
+        Debug.Log($"[SAVE] score={gameScore}, maxCombo={battleManager.MaxCombo}");
+
+        GameResultData.isWin = isWin;
+        GameResultData.score = gameScore;
+
+        GameResultData.killedEnemyCount = battleManager.KilledEnemy;
+        GameResultData.killedBossCount = battleManager.KilledBoss;
+
+        SceneManager.LoadScene("ResultScene");
     }
 
     //リトライボタン

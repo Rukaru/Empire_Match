@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 public class EnemyManager : MonoBehaviour
 {
@@ -10,71 +11,56 @@ public class EnemyManager : MonoBehaviour
     [Header("Enemy Master")]
     [SerializeField] EnemyDefintion[] normalEnemies;
     [SerializeField] EnemyDefintion bossEnemy;
-    int normalIndex = 0;
-    bool isBoss = false;
-    int turnCount = 1;
-    int currentWave;
+   int wave = 1;
+   int normalIndex = 0;
 
     [Header("Wave")]
-    [SerializeField] int maxWave = 20;
+    [SerializeField] int maxWave = 5;
     
 
     void Start()
     {
-        SpawnNormal();
+        SpawnWave();
     }
 
     public void NextWave()
     {
 
-        if (turnCount >= maxWave)
+        wave++;
+        Debug.Log($"[EnemyManager] NextWave called -> wave={wave} / maxWave={maxWave}");
+
+        if (wave > maxWave)
         {
-            BattleClear();
+            Debug.Log("[EnemyManager] WIN (after boss)");
+            battleManager.EndBattle(true);
             return;
         }
 
-        // ノーマル敵を全部倒した → ボス
-        if (!isBoss && normalIndex >= normalEnemies.Length - 1)
-        {
-            isBoss = true;
-            SpawnBoss();
-        }
-        // ボス撃破 → ノーマルに戻る
-        else if (isBoss)
-        {
-            isBoss = false;
-            normalIndex = 0;
-            turnCount++;
-            SpawnNormal();
-        }
-        // ノーマル敵続行
-        else
-        {
-            normalIndex++;
-            SpawnNormal();
-        }
+        SpawnWave();
     }
 
-    void SpawnNormal()
+    void SpawnWave()
     {
-        EnemyDefintion def = normalEnemies[normalIndex];
-        battleManager.SetEnemy(def, turnCount);
+        Debug.Log($"[EnemyManager] SpawnWave wave={wave} / maxWave={maxWave}");
 
-        Debug.Log($"Normal Spawn : {def.enemyName}");
-    }
+        if (wave == maxWave)
+        {
+            Debug.Log($"[EnemyManager] Span BOSS wave ={wave}");
+            battleManager.SetEnemy(bossEnemy, wave);
+            return;
+        }
 
-    void SpawnBoss()
-    {
-        battleManager.SetEnemy(bossEnemy, turnCount);
-       // Debug.Log("=== BOSS SPAWN ===");
-    }
+        if(normalEnemies == null || normalEnemies.Length == 0)
+        {
+            Debug.LogError("normalEnemies が空！");
+            return;
+        }
 
-    void BattleClear()
-    {
-        GameResultData.isWin = true;
-        GameResultData.survivedWave = currentWave - 1;
+        var def = normalEnemies[normalIndex];
+        Debug.Log($"[EnemyManager] Spawn NORMAL wave={wave} index={normalIndex} name={def.enemyName}");
+        
+        battleManager.SetEnemy(def, wave);
 
-        Debug.Log("BATTLE CLEAR");
-        SceneManager.LoadScene("ResultScene");
+        normalIndex = (normalIndex + 1) % normalEnemies.Length;
     }
 }

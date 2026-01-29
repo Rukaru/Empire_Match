@@ -1,16 +1,25 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+
 
 
 public class BattleManager : MonoBehaviour
 {
     [SerializeField] UIManager UI;
-
     int score;
     int killedEnemy;
     int killedBoss;
+
+    public int KilledEnemy => killedEnemy;
+    public int KilledBoss  => killedBoss;
+    public event System.Action<bool> OnBattleFinished;
+
+    bool resolvingTurn = false;
+    int maxCombo = 0;
+    public int MaxCombo => maxCombo;
 
     
     [Header("Player")]
@@ -29,15 +38,28 @@ public class BattleManager : MonoBehaviour
     [SerializeField] EnemyView enemyView;
 
 
-    // ダメージ定数（あとで ScriptableObject 化してもOK）
-    const int normal_attack = 200;   // モンゴリアンチョップ
-    const int red_bonus_attack = 300; // カミツキ
-    const int finisher_damage = 99999; // ヒツジゴロシ
+    [Header("Battle Numbers")]
+    [SerializeField] int normalAttack = 100;
+    [SerializeField] int redBonusAttack = 150;
+    [SerializeField] int greenHeal = 200;
 
-    void Awake()
-    {
-        Debug.Log($"BattleManager instance = {GetInstanceID()}");
-    }
+    [Header("Buff/Debuff Numbers")]
+    [SerializeField, Range(0.1f, 1f)] float blueDebuffRate = 0.5f;
+    [SerializeField] int yellowAttackMul = 2;
+    [SerializeField] int lockedTileScore = 50;
+
+
+    // ===== 青黄の状態 =====
+    int blueDebuffTurns = 0;
+    int yellowBuffTurns = 0;
+
+    [Header("Finisher")]
+    [SerializeField] int finisherComboThreshold = 10;
+    [SerializeField] int finisherDamage = 1200;
+    [SerializeField] int finisherBonusScore = 2000;
+
+    int turnCount = 0;
+    public int TurnCount => turnCount;
 
     void Start()
     {
@@ -45,6 +67,8 @@ public class BattleManager : MonoBehaviour
         UpdatePlayerHPUI();
         UpdateNormaUI();
         norma.ResetAll();
+
+        Debug.Log("[BattleManager] Start called");
     }
 
 
@@ -61,6 +85,10 @@ public class BattleManager : MonoBehaviour
 
         enemyView.Show(def.sp);
         enemyView.FadeIn();
+
+        //敵が変わったタイミングで矢印UI更新（表示ズレ防止）
+        UI.SetBlueDebuff(blueDebuffTurns);
+        UI.SetYellowBuff(yellowBuffTurns);
     }
     
         
@@ -69,12 +97,11 @@ public class BattleManager : MonoBehaviour
     ---------------------------------------------------*/
     void UpdateNormaUI()
     {
-        UI.SetGauge(UI.redGauge, (float)norma.red / norma.redMax);
-        UI.SetGauge(UI.greenGauge, (float)norma.green / norma.greenMax);
-        UI.SetGauge(UI.blueGauge, (float)norma.blue / norma.blueMax);
-        UI.SetGauge(UI.yellowGauge, (float)norma.yellow / norma.yellowMax);
-
-        Debug.Log($"Norma red = {norma.red}/{norma.redMax}");
+        // 格子ゲージ版（value/max をそのまま渡す）
+        UI.SetGridGauge(UI.redGrid, norma.red, norma.redMax);
+        UI.SetGridGauge(UI.greenGrid, norma.green, norma.greenMax);
+        UI.SetGridGauge(UI.blueGrid, norma.blue, norma.blueMax);
+        UI.SetGridGauge(UI.yellowGrid, norma.yellow, norma.yellowMax);
     }
 
     float SafeRate(int value, int max)
@@ -85,29 +112,14 @@ public class BattleManager : MonoBehaviour
     
     void UpdatePlayerHPUI()
     {
-        if(currentEnemy == null)
-        {
-            Debug.LogWarning("EnemyHP UI 更新が呼ばれたが、敵が未セット");
-            return;
-        }
-        
         float rate = (float)playerHP / playerMaxHP;
         UI.SetPlayerHP(rate);
         // ui.SetPlayerHP((float)playerHP / playerMaxHP);
     }
 
-    void HealPlayer(int value)
-    {
-        playerHP += value;
-        if (playerHP > playerMaxHP) playerHP = playerMaxHP;
-
-        UpdatePlayerHPUI();
-    }
-
     void UpdateEnemyHPUI()
     {
         float rate = (float)currentEnemy.hp / currentEnemy.maxHP;
-        Debug.Log($"Enemy HP UI rate = {rate}");
         UI.SetEnemyHP(rate);
         //ui.SetEnemyHP((float)currentEnemy.HP / currentEnemy.MaxHP);
     }
@@ -117,83 +129,167 @@ public class BattleManager : MonoBehaviour
     ---------------------------------------------------*/
     public void OnPuzzleChainResult(PuzzleResult result)
     {
-        Debug.Log($"Chain:{result.chain} " +
-        $"R:{result.red} G:{result.green} B:{result.blue} Y:{result.yellow}");
+        if (currentEnemy == null) return;
 
-        if (currentEnemy == null)
+        //2重呼び出しガード
+        if (resolvingTurn) return;
+        StartCoroutine(ResolveTurn(result));
+    }
+
+    IEnumerator ResolveTurn(PuzzleResult result)
+    {
+        resolvingTurn = true;
+
+        if(result.maxComboThisTurn > GameResultData.maxCombo)
         {
-            Debug.LogError("敵が未セットのまま戦闘処理が呼ばれています");
-            return;
+            GameResultData.maxCombo = result.maxComboThisTurn;
+            Debug.Log($"[SAVE] GameResultData.maxCombo updated => {GameResultData.maxCombo}");    
         }
 
-       // ① ノルマゲージ加算
-        norma.Add(result);
+        maxCombo = Mathf.Max(maxCombo, result.maxComboThisTurn);
+        Debug.Log($"[TURN] {result}");
 
+        // -------------------------
+        // 1) ターン開始時にバフ残りターン減算
+        // -------------------------
+        TickBuffs();
+
+        // -------------------------
+        // 2) 効果中の青/黄はゲージ加算しない → スコア化
+        // -------------------------
+        if (blueDebuffTurns > 0 && result.blue > 0) UI.AddScore(result.blue * lockedTileScore);
+        if (yellowBuffTurns > 0 && result.yellow > 0) UI.AddScore(result.yellow * lockedTileScore);
+
+        norma.blueLocked   = (blueDebuffTurns > 0);
+        norma.yellowLocked = (yellowBuffTurns > 0);
+
+        // 満タンSE用の「加算前」状態
+        bool blueWasFull   = (norma.blue >= norma.blueMax);
+        bool yellowWasFull = (norma.yellow >= norma.yellowMax);
+
+        // -------------------------
+        // 3) ゲージ加算
+        // -------------------------
+        norma.Add(result);
         UpdateNormaUI();
 
-        // ② ノルマ発動（複数対応）
+        // 満タンSE（ロック中は鳴らさない）
+        if (!blueWasFull && norma.blue >= norma.blueMax && blueDebuffTurns == 0) UI.PlayBlueFull();
+        if (!yellowWasFull && norma.yellow >= norma.yellowMax && yellowBuffTurns == 0) UI.PlayYellowFull();
+
+        // -------------------------
+        // ★4) 必殺を「ここで即判定」→ 必殺だけで終了（混ざらない）
+        // -------------------------
+        if ( result.maxComboThisTurn >= finisherComboThreshold)
+        {
+            yield return StartCoroutine(DoFinisher());
+
+            resolvingTurn = false;
+            yield break; // ← 他の攻撃・ノルマを完全に止める
+        }
+
+        // -------------------------
+        // 5) ノルマ発動（赤は“貯めるだけ”＝bonusDamageに入れる）
+        // -------------------------
+        int bonusDamageThisTurn = 0;
+
         while (true)
         {
-          
             NormaType activated = norma.CheckAndConsume();
-     
             if (activated == NormaType.None) break;
 
-            ApplyNormaEffects(activated);
-            UpdateNormaUI();
-            UpdateEnemyHPUI();
-            UpdatePlayerHPUI();
-
-            if(currentEnemy.hp <= 0)
+            switch (activated)
             {
-                OnEnemyDefeated();
-                return;
+                case NormaType.Red:
+                    bonusDamageThisTurn += redBonusAttack;
+                    UI.PlayHitBonus(); // SEは鳴らしてOK（ダメージは後でまとめて適用）
+                    break;
+
+                case NormaType.Green:
+                    HealPlayer(greenHeal); // ★直書き禁止
+                    break;
+
+                case NormaType.Blue:
+                    blueDebuffTurns = 2;
+                    UI.SetBlueDebuff(blueDebuffTurns);
+                    currentEnemy.ApplyAttackDebuff(blueDebuffRate);
+                    break;
+
+                case NormaType.Yellow:
+                    yellowBuffTurns = 2;
+                    UI.SetYellowBuff(yellowBuffTurns);
+                    break;
             }
         }
 
-        ApplyNormalAttack();
-    }
-
-    void ApplyNormaEffects(NormaType type)
-    {
-        if (currentEnemy == null)
+        // -------------------------
+        // 6) 通常攻撃（赤を消したら）
+        // -------------------------
+        int mainDamageThisTurn = 0;
+        if (result.red > 0)
         {
-            Debug.LogError("currentEnemy が null のままノルマ発動しています");
-            return;
+            mainDamageThisTurn = CalculateNormalDamage();
         }
-        
-        switch (type)
+
+        // 攻撃なしなら敵ターン進行
+        int totalDamage = bonusDamageThisTurn + mainDamageThisTurn;
+        if (totalDamage <= 0)
         {
-            case NormaType.Red:
-                Debug.Log("赤ノルマ発動：カミツキ");
-                currentEnemy.TakeDamage(red_bonus_attack);
-                break;
-
-            case NormaType.Green:
-                Debug.Log("緑ノルマ発動：回復解放");
-                HealPlayer(400);
-                break;
-
-            case NormaType.Yellow:
-                Debug.Log("黄ノルマ発動：防御アップ（仮）");
-                norma.red += 5;
-                norma.blue += 5;
-                UpdateNormaUI();
-                break;
-
-            case NormaType.Blue:
-                Debug.Log("青ノルマ発動：敵デバフ解放");
-                currentEnemy.ApplyAttackDebuff(2.0f);
-                break;
+            EnemyTurnProgress();
+            yield return null;
+            resolvingTurn = false;
+            yield break;
         }
+
+        // -------------------------
+        // 7) ダメージ適用は1回だけ + 表示も1回だけ
+        // -------------------------
+        currentEnemy.TakeDamage(totalDamage);
+        UpdateEnemyHPUI();
+        enemyView.FlashDamage();
+
+        // 表示：BONUSが絡むなら1本化
+        if (bonusDamageThisTurn > 0)
+        {
+            UI.PopupEnemyDamageText($"-{totalDamage}", UI.GetBonusColor());
+        }
+        else
+        {
+            UI.PopupEnemyDamage(totalDamage, false);
+            UI.PlayHitNormal();
+        }
+
+        if (currentEnemy.hp <= 0)
+        {
+            OnEnemyDefeated();
+            yield return null;
+            resolvingTurn = false;
+            yield break;
+        }
+
+        // 攻撃したら敵ターン進行（あなたの仕様）
+        if (result.red > 0)
+        {
+            EnemyTurnProgress();
+        }
+
+        yield return null;
+
+        turnCount++;
+        Debug.Log($"[TURN COUNT] turnCount={turnCount}");
+
+        resolvingTurn = false;
     }
     /*-------------------------------------------------
     //               戦闘処理
     ---------------------------------------------------*/
     void ApplyNormalAttack()
     {
-        int damage = CalculateNormalDamage();
+        int damage = CalculateNormalDamage();   // 200など
         currentEnemy.TakeDamage(damage);
+
+        UI.PopupEnemyDamage(damage, false);
+        UI.PlayHitNormal();
 
         UpdateEnemyHPUI();
         enemyView.FlashDamage();
@@ -209,23 +305,57 @@ public class BattleManager : MonoBehaviour
 
     int CalculateNormalDamage()
     {
-        int damage = normal_attack;
+        int damage = normalAttack;
 
-        if(norma.red >= norma.redMax)
-        {
-            damage += red_bonus_attack;
-        }
+        // if(norma.red >= norma.redMax)
+        // {
+        //     damage += red_bonus_attack;
+        // }
+        if(yellowBuffTurns > 0)
+        damage *= yellowAttackMul;
 
         Debug.Log($"通常攻撃ダメージ：{damage}");
         return damage;
     }
     
-    void DoFinisher()
+    IEnumerator DoFinisher()
     {
-        Debug.Log("必殺技発動：ヒツジゴロシ！！");
-        currentEnemy.TakeDamage(finisher_damage);
-        OnEnemyDefeated();
+        if (currentEnemy == null) yield break;
+
+        //必殺演出
+        UI.PlayFinisher();
+        UI.ShowFinisherCutin(1.2f);
+
+        var cam = Camera.main;
+        if (cam && cam.TryGetComponent(out CameraShake shake))
+        {
+            shake.Play(0.15f, 1.2f); // ←短いほど気持ちいい（おすすめ）
+        }
+
+        //カットイン見せる時間
+        yield return new WaitForSeconds(0.4f);
+
+        UI.PlayFinisherHit();
+        enemyView.FlashDamage();
+
+        currentEnemy.TakeDamage(finisherDamage);
         UpdateEnemyHPUI();
+
+        UI.PopupEnemyDamageText($"-{finisherDamage} !!", UI.GetBonusColor());
+        //スコアは「Resultに反映されるところ」に足す必要あり
+        UI.AddScore(finisherBonusScore);
+        
+        //ヒット時の追加揺れ（さらに弱く）
+        if (cam && cam.TryGetComponent(out shake))
+        {
+            shake.Play(0.15f, 1.2f);
+        }
+
+
+        if(currentEnemy.hp <= 0)
+        {
+            OnEnemyDefeated();
+        }
     }
 
     /*-------------------------------------------------
@@ -247,21 +377,58 @@ public class BattleManager : MonoBehaviour
     
     void EnemyAttack()
     {
-        int damage = currentEnemy.GetAttackDamage();
-        //playerHP = Mathf.Max(playerHP - damage, 0);
-
         StartCoroutine(UI.ScreenDamageFlash());
 
-        Debug.Log($"敵攻撃！ damage={currentEnemy.AttackDamage}");
-        playerHP = Mathf.Max(playerHP - currentEnemy.AttackDamage, 0);
+        int damage = currentEnemy.GetAttackDamage();
+        playerHP = Mathf.Max(playerHP - damage, 0);
+
+        //playerHP = Mathf.Max(playerHP - currentEnemy.AttackDamage, 0);
+        UI.PopupPlayerDamage(damage);
+        UI.PlayPlayerDamage();
 
         UpdatePlayerHPUI();
 
-        if(playerMaxHP <= 0)
-        {
-            GameOver();
-        }
+        if(playerHP <= 0)
+        EndBattle(false);
         
+    }
+    /*-------------------------------------------------
+    *       バフ/デバフのターン減算
+    -------------------------------------------------*/
+    void TickBuffs()
+    {
+        if (blueDebuffTurns > 0)
+        {
+            blueDebuffTurns--;
+            UI.SetBlueDebuff(blueDebuffTurns);
+
+            if (blueDebuffTurns == 0)
+            {
+                currentEnemy.ApplyAttackDebuff(1.0f);
+            }
+        }
+
+        if(yellowBuffTurns > 0)
+        {
+            yellowBuffTurns--;
+            UI.SetYellowBuff(yellowBuffTurns);
+        }
+    }
+
+    void HealPlayer(int value)
+    {
+        int before = playerHP;
+        playerHP = Mathf.Min(playerHP + value, playerMaxHP);
+        int healed = playerHP - before;
+
+        if (healed > 0)
+        {
+            UI.PopupPlayerHeal(healed);
+            UI.PlayHeal();
+        }
+
+        UpdatePlayerHPUI();
+        Debug.Log($"HealPlayer value={value} before={before} after={playerHP} healed={healed}");
     }
 
     /*-------------------------------------------------
@@ -269,19 +436,10 @@ public class BattleManager : MonoBehaviour
     -------------------------------------------------*/
     void OnEnemyDefeated()
     {
-        Debug.Log("敵撃破！");
-        norma.ResetAll();// Wave終了時リセット
+        norma.ResetAll();
         UpdateNormaUI();
 
         StartCoroutine(EnemyDefeatedSequence());
-
-        if (currentEnemy.def.isBoss)
-        GameResultData.killedBossCount++;
-        else
-        GameResultData.killedEnemyCount++;
-
-        GameResultData.score += 100;
-        enemyManager.NextWave();
     }
 
     IEnumerator EnemyDefeatedSequence()
@@ -291,27 +449,21 @@ public class BattleManager : MonoBehaviour
         enemyManager.NextWave();
     }
 
-    void BattleClear()
+    public void EndBattle(bool isWin)
     {
-        GameResultData.isWin = true;
-        GameResultData.score = score;
-        GameResultData.killedEnemyCount = killedEnemy + 1;
-        GameResultData.killedBossCount = killedBoss;
+        Debug.Log($"[EndBattle] isWin={isWin} turnCount={turnCount}");
+        
+        Debug.Log($"[EndBattle] maxCombo(final)={GameResultData.maxCombo}");
+        GameResultData.isWin = isWin;
 
-        SceneManager.LoadScene("ResultScene");
+        if(isWin) GameResultData.clearTurns = turnCount;
+        else GameResultData.surviveTurns = turnCount;
+
+        OnBattleFinished?.Invoke(isWin);
     }
 
     void GameOver()
     {
-        GameResultData.isWin = false;
-        GameResultData.score = score;
-        GameResultData.killedEnemyCount = killedEnemy;
-        GameResultData.killedBossCount = killedBoss;
-
-        GameResultData.survivedWave = currentWave;
-
-        SceneManager.LoadScene("ResultScene");
-        Time.timeScale = 0;
+       EndBattle(false);
     }
-
 }
