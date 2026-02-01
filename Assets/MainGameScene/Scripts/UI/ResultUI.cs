@@ -23,6 +23,7 @@ public class ResultUI : MonoBehaviour
 
     [SerializeField] TextMeshProUGUI turnText;
     [SerializeField] TextMeshProUGUI turnValue;
+    [SerializeField, Range(0f, 1f)] float SEVol = 0.6f;
     //[SerializeField] TextMeshProUGUI rankingText;
 
     // Start is called before the first frame update
@@ -31,21 +32,21 @@ public class ResultUI : MonoBehaviour
         Debug.Log($"[RESULT] score={GameResultData.score}, maxCombo={GameResultData.maxCombo}");
 
         resultText.text = GameResultData.isWin ? "YOU WIN" : "GAME OVER";
-        scoreText.text = $"Score :";
+        scoreText.text = $"スコア :";
         scoreValue.text = $" {GameResultData.score}";
-        maxComboText.text = $"MaxCombo :";
+        maxComboText.text = $"最大コンボ :";
         maxComboValue.text = $" {GameResultData.maxCombo}";
 
         if (turnText != null && turnValue != null)
         {
             if (GameResultData.isWin)
             {
-                turnText.text = "Clear Turns :";
+                turnText.text = "クリアターン :";
                 turnValue.text = $"{GameResultData.clearTurns}";
             }
             else
             {
-                turnText.text = "Survived Turns :";
+                turnText.text = "生存ターン :";
                 turnValue.text = $"{GameResultData.surviveTurns}";
             }
 
@@ -70,7 +71,7 @@ public class ResultUI : MonoBehaviour
     IEnumerator ReturnCo()
     {
         if(AudioManager.Instance != null)
-        AudioManager.Instance.PlaySE(tapSE);
+        AudioManager.Instance.PlaySE(tapSE, SEVol);
 
         yield return new WaitForSeconds(0.15f);
         SceneManager.LoadScene("TitleScene");

@@ -5,15 +5,33 @@ using UnityEngine;
 public class TileController : MonoBehaviour
 {
     [SerializeField] List<Sprite> matchColors;
+    [SerializeField] SpriteRenderer sr;
+    [SerializeField] SpriteRenderer highlightSr;
     public int ColorType;
     const float MoveSpeed = 3.5f;
     Vector2 targetPosition;
     float targetDistance;
     private Rigidbody2D rb;
+ 
+    Color baseColor;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        
+        if(sr == null) sr = GetComponent<SpriteRenderer>();
+        baseColor = sr.color;
+
+        if(highlightSr != null)
+        {
+            highlightSr.enabled = false;
+
+            // ★ここ重要：必ず本体より前に
+            highlightSr.sortingLayerID = sr.sortingLayerID;
+            highlightSr.sortingOrder   = sr.sortingOrder + 1;
+
+            highlightSr.color = new Color(1f, 1f, 1f, 0.7f);
+        }
     }
 
     void Start()
@@ -76,14 +94,42 @@ public class TileController : MonoBehaviour
 --------------------------------------------------------*/
     public void Delete()
     {
-        GetComponent<SpriteRenderer>().sortingOrder = -10;
-        GetComponent<BoxCollider2D>().isTrigger = false;
+        HighlightOff();
 
+        // ① 見た目：背面へ
+        var sr = GetComponent<SpriteRenderer>();
+        sr.sortingOrder = -10; // もっと奥へ（値は盤面より小さく）
+
+        // // ② 入力：Raycastを完全に無視（超重要）
+        // gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
+        // // Colliderを無効化（これも重要）
+        // var col = GetComponent<BoxCollider2D>();
+        // if (col != null) col.enabled = false;
+
+        // ③ 物理で飛ばす（今まで通り）
+        var rb = GetComponent<Rigidbody2D>();
         Vector2 force = new Vector2(Random.Range(-500.0f, 500.0f), Random.Range(500.0f, 1000.0f));
         rb.AddForce(force);
 
         rb.gravityScale = MoveSpeed;
         rb.mass = 0.6f;
+
         Destroy(gameObject, 2);
+    }
+
+    /*-------------------------------------------------------
+    /         タイル発光
+    --------------------------------------------------------*/
+    public void HighlightOn()
+    {
+        //sr.color = Color.magenta;
+        if (highlightSr != null) highlightSr.enabled = true;
+    }
+
+    public void HighlightOff()
+    {
+        //sr.color = baseColor;
+        if (highlightSr != null) highlightSr.enabled = false;
     }
 }

@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Data;
-using Unity.Burst.CompilerServices;
+
 
 
 public class UIManager : MonoBehaviour
@@ -79,6 +78,9 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] RectTransform canvasRect;
 
+    [Header("Time Limit UI")]
+    [SerializeField] TextMeshProUGUI enemyCountDownText;
+
 
     float nextSeTime = 0f;
     [SerializeField] float seCooldown = 0.08f;
@@ -97,10 +99,14 @@ public class UIManager : MonoBehaviour
 
     [Header("Camera Shake")]
     [SerializeField] CameraShake cameraShake;  
-
+    
+    
     void Start()
     {
-        FlashImage.SetActive(false);
+        var img = FlashImage.GetComponent<Image>();
+        var c = img.color;
+        c.a = 0f;
+        img.color = c;
 
         SetBlueDebuff(0);
         SetYellowBuff(0);
@@ -118,6 +124,28 @@ public class UIManager : MonoBehaviour
 
         seSource.PlayOneShot(clip, volume);
         nextSeTime = Time.time + seCooldown;
+    }
+
+    public void ShowEnemyCountDown(bool show)
+    {
+        if (enemyCountDownText == null) return;
+        enemyCountDownText.gameObject.SetActive(show);
+    }
+
+    public void SetEnemyCountDown(int count)
+    {
+        if (enemyCountDownText == null) return;
+        
+        if (count > 0)
+        enemyCountDownText.text = $"COUNT {count}";
+        else
+        enemyCountDownText.text = "TIME UP!";
+    }
+
+     public void SetEnemyCountDownStopFeedback()
+    {
+        if(enemyCountDownText == null) return;
+        ShowEnemyCountDown(false);
     }
 
     public void PlayHitNormal()   => PlaySE(seHitNormal, volHitNormal);
@@ -169,17 +197,17 @@ public class UIManager : MonoBehaviour
 
     public void SetEnemyTurn(int turn)
     {
-        enemyTurnText.text = $"Until Enemy Attacks: ";
+        enemyTurnText.text = $"敵が攻撃するまで: ";
         enemyTurnValue.text = $"{turn}";
     }
 
     public IEnumerator ScreenDamageFlash()
     {
-        screenFlash.color = new Color(1, 0, 0, 0.4f);
-        yield return new WaitForSeconds(0.15f);
-        screenFlash.color = Color.clear;
-
         FlashImage.SetActive(true);
+
+        screenFlash.color = new Color(1, 0, 0, 0.4f);
+        yield return new WaitForSeconds(0.3f);
+        screenFlash.color = Color.clear;
     }
 
     public void ResetEnemyHPColor()
