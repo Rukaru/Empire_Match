@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -6,6 +7,7 @@ public class StartSpriteClick : MonoBehaviour
     [SerializeField] string nextSceneName = "MatchPuzzle";
     [SerializeField] AudioClip tapSE;
     [SerializeField] AudioClip titleBGM;
+    [SerializeField, Range(0f, 1f)] float SEVol = 0.6f;
 
     void Start()
     {
@@ -15,11 +17,18 @@ public class StartSpriteClick : MonoBehaviour
 
     void OnMouseDown()
     {
-        // ここが「Spriteクリック」
-        Debug.Log("Start Sprite Clicked!");
+        StartCoroutine(GoNext());
+    }
 
+    IEnumerator GoNext()
+    {
         if (AudioManager.Instance != null && tapSE != null)
-        AudioManager.Instance.PlaySE(tapSE);
+        AudioManager.Instance.PlaySE(tapSE, SEVol);
+
+        if (AudioManager.Instance != null)
+        AudioManager.Instance.StopBGM();
+
+        yield return new WaitForSeconds(0.1f);
 
         GameResultData.Reset();
         SceneManager.LoadScene(nextSceneName);

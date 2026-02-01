@@ -16,6 +16,7 @@ public class Pause : MonoBehaviour
 
     [Header("SE")]
     [SerializeField] AudioClip tapSE;
+    [SerializeField, Range(0f, 1f)] float SEVol = 0.6f;
 
     bool isOpen = false;
     
@@ -45,7 +46,7 @@ public class Pause : MonoBehaviour
     void PlayTapSE()
     {
         if(AudioManager.Instance != null && tapSE != null)
-        AudioManager.Instance.PlaySE(tapSE);
+        AudioManager.Instance.PlaySE(tapSE, SEVol);
     }
 
     public void OnclickReStart()

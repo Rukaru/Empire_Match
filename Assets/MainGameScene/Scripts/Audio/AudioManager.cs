@@ -58,11 +58,11 @@ public class AudioManager : MonoBehaviour
         bgm.clip = null;
     }
 
-    public void PlaySE(AudioClip clip)
+    public void PlaySE(AudioClip clip, float volume)
     {
         if (clip == null) return;
 
         EnsureSources();
-        seSource.PlayOneShot(clip);
+        seSource.PlayOneShot(clip, Mathf.Clamp01(volume));
     }
 }

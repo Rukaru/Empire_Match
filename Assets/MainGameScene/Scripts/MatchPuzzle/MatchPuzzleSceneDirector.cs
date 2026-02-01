@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-
+using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -25,14 +25,24 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] TextMeshProUGUI textResultScore;
     [SerializeField] AudioClip seDelete;
     [SerializeField] Vector2 fieldOffset;   //UI調整用オフセット
+    [SerializeField] ScreenTransitionFX transitionFX;
     
     TileController[,] fieldTiles;
+    TileController selectedTile;
+
+    [Header("Combo Punch")]
+    [SerializeField] float comboPunchScale = 1.9f;
+    [SerializeField] float comboPunchTime = 0.05f;
+    [SerializeField] float comboDownTime = 0.12f;
     
+    Coroutine comboPunchCo;
+    Vector3 comboBaseScale = Vector3.one;
 
     enum GameMode
     {
         WaitFall,
         Delete,
+        DeleteFlash,
         Fall,
         Spawn,
         Touch,
@@ -70,6 +80,9 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     
     void Start()
     {
+        if (comboLabel != null)
+        comboBaseScale = comboLabel.rectTransform.localScale;
+
         //サウンド
         audioSource = GetComponent<AudioSource>();
         battleManager = FindObjectOfType<BattleManager>();
@@ -103,13 +116,26 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
     void OnBattleFinished(bool isWin)
     {
-         Debug.Log($"[MatchPuzzle] OnBattleFinished received isWin={isWin}");
+        Debug.Log($"[MatchPuzzle] OnBattleFinished received isWin={isWin}");
         GameResult(isWin);
+    }
+
+    IEnumerator WinSequenceToResult()
+    {
+        if(transitionFX != null)
+        {
+            yield return transitionFX.PlayBossDefeatToResult();
+        }
+        else
+        {
+            yield return new WaitForSeconds(3.5f);
+        }
+
+        SceneManager.LoadScene("ResultScene");
     }
 
     void Update()
     {
-        
         if (gameMode == GameMode.WaitFall)  
         WaitFallMode();
         else if (gameMode == GameMode.Delete)
@@ -124,6 +150,9 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         WaitSwapMode();
         else if (gameMode == GameMode.WaitBackSwap)
         WaitBackSwapMode();
+
+        else if (gameMode == GameMode.DeleteFlash)
+        return;
     }
 
 
@@ -223,11 +252,9 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         // 🔽 削除がある場合
         if (deleteTiles.Count > 0)
         {
-            // タイル削除（初期盤面でも削除はする）
-            DeleteTiles(deleteTiles);
-
-            // 削除後は必ず落下処理へ
-            gameMode = GameMode.Fall;
+            StartCoroutine(DeleteTilesWithFlash(deleteTiles));
+            gameMode = GameMode.DeleteFlash;
+            
             return;
         }
 
@@ -292,6 +319,14 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
     void TouchMode()
     {
+
+        if (!isTouchDown) // 「まだ触ってない状態」ならタイマー開始していい
+        {
+            battleManager.StartTurnTimeLimit();
+        }
+
+        if (battleManager != null && battleManager.battleEnded) return;
+
         if (Input.GetMouseButtonDown(0))
         {
             //スクリーン座標からワールド座標に
@@ -301,18 +336,30 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
             //あたり判定あるかどうか
             if (hit2D)
             {
+                battleManager.StopTurnTimeLimit();
+
+                // いま選択中のが残ってたら消す
+                if (selectedTile != null) selectedTile.HighlightOff();
+
+                // 今触ったタイルを取得して光らせる
+                selectedTile = hit2D.collider.GetComponent<TileController>();
+                if (selectedTile != null) selectedTile.HighlightOn();
+
                 swapIndexA = WorldToIndexPosition(hit2D.transform.position);
                 touchDownPoint = worldPoint;
                 isTouchDown = true;
             }
-
-            // if(isInitialBoard)
-            // isInitialBoard = false;
         }
         //タッチ離れたとき
         else if (Input.GetMouseButtonUp(0))
         {
             if(!isTouchDown) return;
+            
+            if(selectedTile != null)
+            {
+                selectedTile.HighlightOff();
+                selectedTile = null;
+            }
 
             Vector2 worldPoint = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 vec = (worldPoint - touchDownPoint);
@@ -561,6 +608,36 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
         audioSource.PlayOneShot(seDelete);
     }
 
+    IEnumerator DeleteTilesWithFlash(List<Vector2Int> deleteTiles)
+    {
+        // 先にハイライトON
+        foreach (var item in deleteTiles)
+        {
+            TileController tile = GetFieldTile(item.x, item.y);
+            if (tile != null)
+            {
+                tile.HighlightOn();
+            }
+        }
+
+        // ほんの少し待つ（演出）
+        yield return new WaitForSeconds(0.05f);
+
+        // ② ここで必ず元に戻す（飛び散る時は元の色にしたい）
+        foreach (var item in deleteTiles)
+        {
+            var tile = GetFieldTile(item.x, item.y);
+            if (tile != null) tile.HighlightOff();
+        }
+
+        // 元の削除処理を呼ぶ
+        DeleteTiles(deleteTiles);
+
+        yield return new WaitForSeconds(0.10f);
+
+        gameMode = GameMode.Fall;
+    }
+
     //落下するとき空いているスペースあるかどうか
     int GetBottomY(int x, int y)
     {
@@ -603,11 +680,50 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
         {
             comboValue.text = "";
             comboLabel.text = "";
+            if (comboLabel != null)comboLabel.rectTransform.localScale = comboBaseScale;
             return;
         }
 
         comboLabel.text = comboScore.ToString();
         comboValue.text = " Combo!!";
+
+        PunchComboNumber();
+    }
+
+    void PunchComboNumber()
+    {
+        if(comboLabel == null) return;
+
+        if(comboPunchCo != null) StopCoroutine(comboPunchCo);
+        comboPunchCo = StartCoroutine(ComboPunchCo());
+    }
+
+    IEnumerator ComboPunchCo()
+    {
+        var rt = comboLabel.rectTransform;
+
+        float t = 0f;
+        while(t < comboPunchTime)
+        {
+            t += Time.deltaTime;
+            float k = t / comboPunchTime;
+            float s = Mathf.Lerp(1f, comboPunchScale, k);
+            rt.localScale = comboBaseScale * s;
+            yield return rt;
+        }
+
+        t = 0f;
+        while (t < comboPunchTime)
+        {
+            t += Time.deltaTime;
+            float k = t / comboDownTime;
+            float s = Mathf.Lerp(comboPunchScale, 1f, k);
+            rt.localScale = comboBaseScale * s;
+            yield return null;
+        }
+
+        rt.localScale = comboBaseScale;
+        comboPunchCo = null;
     }
 
     //このタイルはスワイプするとどれかの方向でマッチが作れる
@@ -657,7 +773,6 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
         GameResultData.killedEnemyCount = battleManager.KilledEnemy;
         GameResultData.killedBossCount = battleManager.KilledBoss;
 
-        SceneManager.LoadScene("ResultScene");
     }
 
     //リトライボタン
