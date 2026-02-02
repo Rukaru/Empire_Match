@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: -9999
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 1aa2144c7a127f843bef8830ac96030a, type: 2}
-  m_sharedMaterial: {fileID: -6255044686016881263, guid: 1aa2144c7a127f843bef8830ac96030a, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 1946289533e40e445b75c7157fe259b9, type: 2}
+  m_sharedMaterial: {fileID: 1587942852345652014, guid: b8ff2cdbfd4e9a748a9ef63f578aafb1, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -92,8 +92,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 120
-  m_fontSizeBase: 120
+  m_fontSize: 85.1
+  m_fontSizeBase: 85.1
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -131,6 +131,6 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}

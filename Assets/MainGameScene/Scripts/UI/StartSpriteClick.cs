@@ -7,12 +7,13 @@ public class StartSpriteClick : MonoBehaviour
     [SerializeField] string nextSceneName = "MatchPuzzle";
     [SerializeField] AudioClip tapSE;
     [SerializeField] AudioClip titleBGM;
+    [SerializeField, Range(0f, 1f)] float BGMVol = 0.6f;
     [SerializeField, Range(0f, 1f)] float SEVol = 0.6f;
 
     void Start()
     {
         if (AudioManager.Instance != null && titleBGM != null)
-        AudioManager.Instance.PlayBGM(titleBGM);
+        AudioManager.Instance.PlayBGM(titleBGM, BGMVol);
     }
 
     void OnMouseDown()
@@ -32,5 +33,11 @@ public class StartSpriteClick : MonoBehaviour
 
         GameResultData.Reset();
         SceneManager.LoadScene(nextSceneName);
+    }
+
+     public void GameGuide()
+    {
+        SceneManager.LoadScene("GuideScene");
+        //AudioManager.Instance.PlaySE(tapSE);
     }
 }

@@ -38,21 +38,30 @@ public class AudioManager : MonoBehaviour
         seSource.playOnAwake = false;
     }
 
-    public void PlayBGM(AudioClip clip)
+    public void PlayBGM(AudioClip clip, float volume)
     {
         if (clip == null) return;
 
         EnsureSources(); // ★シーン切替後に参照が壊れてても復旧
 
-        if (bgm.clip == clip && bgm.isPlaying) return;
+        volume = Mathf.Clamp01(volume);
+
+        if (bgm.clip == clip && bgm.isPlaying)
+        {
+            bgm.volume = volume;
+            return;
+        } 
 
         bgm.clip = clip;
         bgm.loop = true;
+        bgm.volume = volume;
         bgm.Play();
     }
 
     public void StopBGM()
     {
+        if (bgm == null) return;
+
         EnsureSources();
         bgm.Stop();
         bgm.clip = null;

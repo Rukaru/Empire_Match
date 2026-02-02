@@ -23,6 +23,7 @@ public class BattleManager : MonoBehaviour
 
     [SerializeField] PlayerView playerView;
     [SerializeField] ScreenTransitionFX transitionFX;
+    
 
     
     [Header("Player")]
@@ -36,7 +37,8 @@ public class BattleManager : MonoBehaviour
     [SerializeField] EnemyManager enemyManager;
     [SerializeField] int enemyMaxHP;
 
-    public bool battleEnded = false;
+    //public bool battleEnded = false;
+    public bool battleEnded { get; private set; }
 
     [Header("Norma")]
     [SerializeField]  NormaGauge norma;
@@ -593,10 +595,9 @@ public class BattleManager : MonoBehaviour
         battleEnded = true;
 
         Debug.Log($"[EndBattle] isWin={isWin} turnCount={turnCount}");
-        
-        Debug.Log($"[EndBattle] maxCombo(final)={GameResultData.maxCombo}");
        
         GameResultData.isWin = isWin;
+
         if(isWin) GameResultData.clearTurns = turnCount;
         else GameResultData.surviveTurns = turnCount;
 
@@ -616,6 +617,8 @@ public class BattleManager : MonoBehaviour
     IEnumerator WinToResultSequence()
     {
         enabled = false;
+
+        StopTurnTimeLimit();
 
         if(transitionFX != null)
         yield return StartCoroutine(transitionFX.PlayBossDefeatToResult());
