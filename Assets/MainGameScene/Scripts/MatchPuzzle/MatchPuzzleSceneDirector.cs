@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using UnityEditor.U2D.Aseprite;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -38,8 +37,25 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     Coroutine comboPunchCo;
     Vector3 comboBaseScale = Vector3.one;
 
+    [Header("Start")]
+    [SerializeField] GameObject startPanel;
+    [SerializeField] TextMeshProUGUI startText;
+    [SerializeField] float readyTime = 0.8f;
+    [SerializeField] float startTime = 0.4f;
+    bool isStarting = true;
+
+    [Header("Start Cushion Sound")]
+    //サウンド
+    AudioSource audioSource;
+    [SerializeField] AudioClip mainBGM;
+    [SerializeField, Range(0f, 1f)] float BGMVol = 0.6f;
+    [SerializeField] AudioClip startSE;
+    [SerializeField, Range(0f, 1f)] float SEVol = 0.6f;
+
+
     enum GameMode
     {
+        StartWait, 
         WaitFall,
         Delete,
         DeleteFlash,
@@ -70,8 +86,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     private List<TileController> removedTilesAll = new List<TileController>();
     // 全連鎖の消去ピース
 
-    //サウンド
-    AudioSource audioSource;
+
 
     /// <summary>
     /// 2次元に並べた配列（いわゆる“マス目”）として宣言している。
@@ -111,6 +126,41 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         //タイル生成
         SpawnTiles();
 
+        gameMode = GameMode.StartWait;
+        StartCoroutine(StartSequence());
+    }
+
+    IEnumerator StartSequence()
+    {
+        isStarting = true;
+
+        if(AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopBGM();
+        }
+
+        if(startPanel != null) startPanel.SetActive(true);
+
+        if(startText != null) startText.text = "READY?";
+        yield return new WaitForSeconds(readyTime);
+
+        if(startText != null) startText.text = "START!";
+        yield return new WaitForSeconds(startTime);
+        
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySE(startSE, SEVol);
+        }
+        yield return new WaitForSeconds(startTime);
+
+        if(AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayBGM(mainBGM, BGMVol);
+        }
+
+        if(startPanel != null) startPanel.SetActive(false);
+        isStarting = false;
+
         gameMode = GameMode.WaitFall;
     }
 
@@ -136,6 +186,10 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
     void Update()
     {
+        if(gameMode == GameMode.StartWait)
+        return;
+        if(battleManager != null && battleManager.battleEnded)
+        return; 
         if (gameMode == GameMode.WaitFall)  
         WaitFallMode();
         else if (gameMode == GameMode.Delete)
@@ -319,6 +373,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
 
     void TouchMode()
     {
+        if (isStarting) return;
 
         if (!isTouchDown) // 「まだ触ってない状態」ならタイマー開始していい
         {

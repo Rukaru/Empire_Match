@@ -18,6 +18,7 @@ public class ResultUI : MonoBehaviour
     [SerializeField] AudioClip tapSE;
     [SerializeField] AudioClip winBGM;
     [SerializeField] AudioClip loseBGM;
+    [SerializeField, Range(0f, 1f)] float BGMVol = 0.6f;
 
     [SerializeField] GameObject winCharacterObject;
 
@@ -59,7 +60,7 @@ public class ResultUI : MonoBehaviour
 
        if(AudioManager.Instance != null && bgm != null)
         {
-            AudioManager.Instance.PlayBGM(bgm);
+            AudioManager.Instance.PlayBGM(bgm, BGMVol);
         }
     }
 
