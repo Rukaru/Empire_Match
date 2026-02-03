@@ -15,6 +15,6 @@ MonoBehaviour:
   enemyName: Hawk
   sp: {fileID: 21300000, guid: 5247049b8ca87e741958c82e041f5849, type: 3}
   isBoss: 0
-  baseHP: 1500
+  baseHP: 1400
   attackDamage: 400
   maxTurn: 3
