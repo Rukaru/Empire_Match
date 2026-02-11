@@ -97,6 +97,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject finisherCutin; //TextやImageを置いたPanel
     [SerializeField, Range(0f, 1f)] float volFinisher = 1.0f;
 
+    [Header("DownText UI")]
+    [SerializeField] GameObject downTextRoot;
+    Coroutine downTextCo;
+    
     [Header("Camera Shake")]
     [SerializeField] CameraShake cameraShake;  
     
@@ -360,5 +364,41 @@ public class UIManager : MonoBehaviour
         SpawnPopup(enemyPopupRoot, text, color, true, true);
     }
 
+    /*------------------------------
+     * DownText
+    ------------------------------*/
+    public void ShowDownText(float time)
+    {
+        if(downTextRoot == null) return;
+
+        if (downTextCo != null)
+        {
+            StopCoroutine(downTextCo);
+            downTextCo = null;
+        }
+        
+        downTextCo = StartCoroutine(DownTextCoroutine(time));
+    }
+
+    IEnumerator DownTextCoroutine(float time)
+    {
+        downTextRoot.SetActive(true);
+        yield return new WaitForSeconds(time);
+        downTextRoot.SetActive(false);
+        downTextCo = null;
+    }
+
+    // ★ 追加：強制的に消す（死亡・遷移用）
+    public void ForceHideDownText()
+    {
+        if (downTextCo != null)
+        {
+            StopCoroutine(downTextCo);
+            downTextCo = null;
+        }
+
+        if (downTextRoot != null)
+            downTextRoot.SetActive(false);
+    }
 
 }

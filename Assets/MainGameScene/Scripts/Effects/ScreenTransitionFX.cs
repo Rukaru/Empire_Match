@@ -21,6 +21,11 @@ public class ScreenTransitionFX : MonoBehaviour
 
     void Awake()
     {
+        ResetOverlay();
+    }
+
+     public void ResetOverlay()
+    {
         SetAlpha(whiteOut, 0f);
         SetAlpha(blackOut, 0f);
     }
@@ -35,12 +40,31 @@ public class ScreenTransitionFX : MonoBehaviour
 
     public IEnumerator PlayBossDefeatToResult()
     {
+        ResetOverlay();
         //ホワイトアウト開始 + 揺れ
         if (shake != null) shake.Play(shakeTime, shakeStrength);
         yield return Fade(whiteOut, 0f, 1f, whiteOutTime);
         
         //白になった直後、暗転（黒が上に乗る）
         yield return Fade(blackOut, 0f, 1f, blackInTime);
+    }
+
+    // ========== ★追加：白フラッシュ（死亡の最初に使う） ==========
+    public IEnumerator FlashWhite(float flashTime = 0.2f)
+    {
+        if (whiteOut == null) yield break;
+
+        // 一瞬だけ真っ白にして戻す（目で分かる）
+        SetAlpha(whiteOut, 0f);
+        yield return Fade(whiteOut, 0f, 1f, flashTime * 0.2f); // 速く点灯
+        yield return Fade(whiteOut, 1f, 0f, flashTime * 0.8f); // 少しだけ余韻
+    }
+
+    // ========== ★追加：黒暗転だけ（死亡で使う） ==========
+    public IEnumerator BlackOut(float time)
+    {
+        if (blackOut == null) yield break;
+        yield return Fade(blackOut, 0f, 1f, time);
     }
 
     IEnumerator Fade(Image img, float from, float to, float time)

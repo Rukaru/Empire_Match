@@ -780,11 +780,11 @@ MonoBehaviour:
   tapSE: {fileID: 8300000, guid: 2d2d09a6fc325094b88f973598cb4552, type: 3}
   winBGM: {fileID: 8300000, guid: 1584e0fec81aeeb4182518a9202d5d33, type: 3}
   loseBGM: {fileID: 8300000, guid: 18b4eae6a51c7e64ca228a27c7680a91, type: 3}
-  BGMVol: 0.6
+  BGMVol: 0.882
   winCharacterObject: {fileID: 1903506948}
   turnText: {fileID: 1467904897}
   turnValue: {fileID: 1558599119}
-  SEVol: 0.6
+  SEVol: 0.81
 --- !u!4 &512609499
 Transform:
   m_ObjectHideFlags: 0

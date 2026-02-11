@@ -61,4 +61,25 @@ public class PlayerView : MonoBehaviour
         runner = null;
     }
 
+    public IEnumerator FadeOut(float time = 1.0f)
+    {
+        if (sr == null) yield break;
+
+        float t = 0f;
+        Color c = sr.color;
+
+        float startA = c.a;
+        while (t < time)
+        {
+            t += Time.deltaTime;
+            float k = Mathf.Clamp01(t / time);
+            c.a = Mathf.Lerp(startA, 0f, k);
+            sr.color = c;
+            yield return null;
+        }
+
+        c.a = 0f;
+        sr.color = c;
+    }
+
 }
