@@ -29,6 +29,10 @@ public class BattleManager : MonoBehaviour
     [Header("Player")]
     [SerializeField] int playerMaxHP = 2000;
     int playerHP;
+
+    [SerializeField] AudioClip playerDownSE;
+
+
     
     [Header("Enemy")]
     EnemyData currentEnemy;
@@ -235,7 +239,7 @@ public class BattleManager : MonoBehaviour
                     break;
 
                 case NormaType.Blue:
-                    blueDebuffTurns = 2;
+                    blueDebuffTurns = 4;
                     UI.SetBlueDebuff(blueDebuffTurns);
                     currentEnemy.ApplyAttackDebuff(blueDebuffRate);
                     break;
@@ -505,9 +509,52 @@ public class BattleManager : MonoBehaviour
 
         UpdatePlayerHPUI();
 
-        if(playerHP <= 0)
-        EndBattle(false);
-        
+        if (playerHP <= 0)
+        {
+            StartCoroutine(PlayerDownSequence());
+            return;
+        }
+
+        IEnumerator PlayerDownSequence()
+        {
+            if(battleEnded) yield break;
+            battleEnded = true;
+            resolvingTurn = true;
+
+            UI?.ForceHideDownText();
+
+            // BGM止める（死亡は分かりやすく）
+            AudioManager.Instance?.StopBGM();
+
+            // ① 白フラッシュ 0.2秒（※ FlashWhite が無いなら ScreenTransitionFX に追加する）
+            if (transitionFX != null) transitionFX.FlashWhite(0.2f);
+
+            // ② ヒットストップ
+            Time.timeScale = 0f;
+
+            // SE
+            if (AudioManager.Instance != null && playerDownSE != null)
+            AudioManager.Instance.PlaySE(playerDownSE, 0.8f);
+
+            yield return new WaitForSecondsRealtime(0.15f);
+            Time.timeScale = 1f;
+
+            // ③ DOWNテキスト（短め推奨）
+            UI?.ShowDownText(0.8f);
+
+            // ④ プレイヤーフェードアウト 1秒
+            if (playerView != null) yield return playerView.FadeOut(1.0f);
+            else yield return new WaitForSeconds(1.0f);
+
+            // ⑤ 暗転（3秒）
+            if (transitionFX != null) yield return transitionFX.BlackOut(3.0f);
+            else yield return new WaitForSeconds(3.0f);
+
+            // 最後に念のため消す
+            UI?.ForceHideDownText();
+
+            EndBattle(false);
+        }
     }
     /*-------------------------------------------------
     *       バフ/デバフのターン減算

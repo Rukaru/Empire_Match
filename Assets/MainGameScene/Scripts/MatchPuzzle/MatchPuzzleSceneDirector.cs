@@ -23,6 +23,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] GameObject panelResult;
     [SerializeField] TextMeshProUGUI textResultScore;
     [SerializeField] AudioClip seDelete;
+    [SerializeField, Range(0f, 1f)] float SEVol = 0.6f;
     [SerializeField] Vector2 fieldOffset;   //UI調整用オフセット
     [SerializeField] ScreenTransitionFX transitionFX;
     
@@ -50,7 +51,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField] AudioClip mainBGM;
     [SerializeField, Range(0f, 1f)] float BGMVol = 0.6f;
     [SerializeField] AudioClip startSE;
-    [SerializeField, Range(0f, 1f)] float SEVol = 0.6f;
+    [SerializeField, Range(0f, 1f)] float S_SEVol = 0.6f;
 
 
     enum GameMode
@@ -149,7 +150,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlaySE(startSE, SEVol);
+            AudioManager.Instance.PlaySE(startSE, S_SEVol);
         }
         yield return new WaitForSeconds(startTime);
 
@@ -660,7 +661,7 @@ List<Vector2Int> GetMatchTiles(Vector2Int index, List<Vector2Int> directions)
         textGameScore.text = gameScore.ToString();
 
         //SE
-        audioSource.PlayOneShot(seDelete);
+        audioSource.PlayOneShot(seDelete, SEVol);
     }
 
     IEnumerator DeleteTilesWithFlash(List<Vector2Int> deleteTiles)
