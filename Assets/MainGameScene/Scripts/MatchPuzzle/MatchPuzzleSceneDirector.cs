@@ -392,7 +392,6 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
             //あたり判定あるかどうか
             if (hit2D)
             {
-                battleManager.StopTurnTimeLimit();
 
                 // いま選択中のが残ってたら消す
                 if (selectedTile != null) selectedTile.HighlightOff();
@@ -421,6 +420,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
             Vector2 vec = (worldPoint - touchDownPoint);
             Vector2Int indexDirection = Vector2Int.zero;
 
+            //スワイプ方向判定
             if(Mathf.Abs(vec.x) < Mathf.Abs(vec.y))//縦軸
             {
                 indexDirection = Vector2Int.up;
@@ -438,8 +438,24 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
                 }
             }
 
+            //方向が決まらない（クリックだけ）なら何もしない：タイマー止めない
+            if (indexDirection == Vector2Int.zero)
+            {
+                isTouchDown = false;
+                gameMode = GameMode.Touch;
+                return;
+            }
+
             //交換するタイルのインデックス
             swapIndexB = swapIndexA + indexDirection;
+            if(IsOutOfRange(swapIndexB.x, swapIndexB.y))
+            {
+                isTouchDown = false;
+                gameMode = GameMode.Touch;
+                return;
+            }
+            battleManager.StopTurnTimeLimit();
+
             SwapTiles(swapIndexA, swapIndexB);
             isTouchDown = false;
 
