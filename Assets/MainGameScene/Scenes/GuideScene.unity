@@ -1024,11 +1024,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   guideImage: {fileID: 1321651176}
   pages:
-  - {fileID: 21300000, guid: 6164887125e94e0468b850da9c1b3a9a, type: 3}
-  - {fileID: 21300000, guid: 2867b9cde1f071d4fb019623668e040f, type: 3}
-  - {fileID: 21300000, guid: b6282f1128524f0499858754b0ae0291, type: 3}
-  - {fileID: 21300000, guid: 5624fba228b9caf4392099ee685525ee, type: 3}
-  - {fileID: 21300000, guid: 093dd0bf71655f148ac4060ab4199d72, type: 3}
+  - {fileID: 21300000, guid: e1307a65fa11bbd4b94fb927da236c3c, type: 3}
+  - {fileID: 21300000, guid: cf488402e3ee9414f90cdc094b2f6318, type: 3}
+  - {fileID: 21300000, guid: 8425fb804f588514b8abbad22121a566, type: 3}
+  - {fileID: 21300000, guid: 3973a18e473bb9744aa6244ff2810c8d, type: 3}
+  - {fileID: 21300000, guid: 05fb13464fc5ad64db40e3c6f4c81a87, type: 3}
+  nextButton: {fileID: 388850538}
+  nextButtonText: {fileID: 1425458605}
+  nextLabel: "\u6B21\u3078"
+  lastLabel: "\u30BF\u30A4\u30C8\u30EB\u3078"
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  lastColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
 --- !u!1 &1400875417
 GameObject:
   m_ObjectHideFlags: 0

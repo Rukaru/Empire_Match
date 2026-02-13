@@ -8,6 +8,14 @@ public class GuideController : MonoBehaviour
    [SerializeField] Image guideImage;
    [SerializeField] Sprite[] pages;
 
+   [SerializeField] Button nextButton;
+   [SerializeField] Text nextButtonText;
+   [SerializeField] string nextLabel = "次へ";
+   [SerializeField] string lastLabel = "タイトルへ";
+
+   [SerializeField] Color normalColor = Color.white;
+   [SerializeField] Color lastColor = Color.yellow;
+
    int index = 0;
 
    void Start()
@@ -17,8 +25,13 @@ public class GuideController : MonoBehaviour
 
     public void Next()
     {
+        if (index >= pages.Length - 1)
+        {
+            BackToTitle();
+            return;
+        }
+
         index++;
-        if (index < 0) index = 0;
         Refresh();
     }
 
@@ -31,9 +44,25 @@ public class GuideController : MonoBehaviour
 
     void Refresh()
     {
-        guideImage.sprite = pages[index];
-    }
+        if (pages == null || pages.Length == 0) return;
+       
+        if(index < 0) index = 0;
+        if (index >= pages.Length) index = pages.Length - 1;
 
+        guideImage.sprite = pages[index];
+
+        bool isLast = (index == pages.Length - 1);
+        
+        if (nextButtonText != null)
+        nextButtonText.text = isLast ? nextLabel : nextLabel;
+
+        if (nextButton != null)
+        {
+            var colors = nextButton.colors;
+            colors.normalColor = isLast ? lastColor : normalColor;
+            nextButton.colors = colors;
+        }
+    }
     public void BackToTitle()
     {
         SceneManager.LoadScene("TitleScene");
