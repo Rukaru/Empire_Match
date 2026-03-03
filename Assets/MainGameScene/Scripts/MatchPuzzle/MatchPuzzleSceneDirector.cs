@@ -52,6 +52,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float BGMVol = 0.6f;
     [SerializeField] AudioClip startSE;
     [SerializeField, Range(0f, 1f)] float S_SEVol = 0.6f;
+    bool startedTurnTimerThisTouch = false;
 
 
     enum GameMode
@@ -330,6 +331,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         }
 
         // 入力可能状態へ戻す
+        startedTurnTimerThisTouch = false;
         gameMode = GameMode.Touch;
     }
 
@@ -375,14 +377,14 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
     void TouchMode()
     {
         if (isStarting) return;
-
-        if (!isTouchDown) // 「まだ触ってない状態」ならタイマー開始していい
-        {
-            battleManager.StartTurnTimeLimit();
-        }
-
         if (battleManager != null && battleManager.battleEnded) return;
 
+        if (!startedTurnTimerThisTouch)
+        {
+            battleManager.StartTurnTimeLimit();
+            startedTurnTimerThisTouch = true;
+        }
+        
         if (Input.GetMouseButtonDown(0))
         {
             //スクリーン座標からワールド座標に
@@ -492,6 +494,7 @@ public class MatchPuzzleSceneDirector : MonoBehaviour
         //移動未終了
         if (!IsEndMoveTiles()) return;
 
+        startedTurnTimerThisTouch = false;
         gameMode = GameMode.Touch;
     }
 

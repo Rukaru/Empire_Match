@@ -438,27 +438,30 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator TurnTimeLimitCo()
     {
+        timerRunning = true;
         UI.ShowEnemyCountDown(true);
 
-        int c = startCount; // 3
-        UI.SetEnemyCountDown(c);
-
-        while (c > 0)
+        while (timerRunning)
         {
-            yield return new WaitForSeconds(countInterval);
-            c--;
+            int c = startCount; // 3
             UI.SetEnemyCountDown(c);
-        }
 
-        // 0になった（まだ触ってない＝Stopされてない）なら攻撃
-        timerRunning = false;
-        UI.ShowEnemyCountDown(false);
+            while (c > 0 && timerRunning)
+            {
+                yield return new WaitForSeconds(countInterval);
+                c--;
+                UI.SetEnemyCountDown(c);
+            }
 
-        if (!timeUpAlreadyHit)
-        {
-            timeUpAlreadyHit = true;
+            if (!timerRunning) break;
+
+            // 0になった → ダメージ
             DoSinproAttack();
+            // 次のループでまた 3 から再開
         }
+
+        UI.ShowEnemyCountDown(false);
+        turnTimerCo = null;
     }
 
     void DoSinproAttack()

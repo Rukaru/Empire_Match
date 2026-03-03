@@ -17,4 +17,4 @@ MonoBehaviour:
   isBoss: 0
   baseHP: 1000
   attackDamage: 200
-  maxTurn: 1
+  maxTurn: 2
